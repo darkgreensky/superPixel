@@ -1,0 +1,22 @@
+# Python bytecode (compiled .pyc files)
+*.pyc
+
+# Compiled UI files
+*.ui
+
+# Ignore compiled Python files in __pycache__ directories
+__pycache__/
+
+# Ignore the build directory
+build/
+
+# Ignore the generated Makefile and *.pro.user files
+*.pro.user
+Makefile
+
+# Ignore the virtual environment directory
+venv/
+
+# Ignore IDE specific files and directories (e.g., PyCharm)
+.idea/
+*.iml
