@@ -20,3 +20,8 @@ venv/
 # Ignore IDE specific files and directories (e.g., PyCharm)
 .idea/
 *.iml
+
+# Ignore the photos and package tool
+resources/
+dist/
+main.spec
