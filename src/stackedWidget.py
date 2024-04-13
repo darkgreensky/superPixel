@@ -9,4 +9,4 @@ class StackedWidget(QStackedWidget):
         for table in tables:
             self.addWidget(table(parent=parent))
         self.setMinimumWidth(280)
-        self.setMinimumHeight(180)
+        self.setMinimumHeight(260)
