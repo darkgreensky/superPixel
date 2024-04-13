@@ -9,6 +9,7 @@ items = [
     GammaItem,
     SkimageSLICItem,
     OpenCVSLICItem,
+    OpenCVSEEDSItem,
 ]
 
 tables = [
@@ -17,5 +18,6 @@ tables = [
     GammaITabelWidget,
     SkimageSLICTableWidget,
     OpenCVSLICTableWidget,
+    OpenCVSEEDSTableWidget,
 ]
 

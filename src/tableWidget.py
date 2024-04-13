@@ -193,6 +193,85 @@ class OpenCVSLICTableWidget(TableWidget):
         self.ruler_spinBox.setSingleStep(1)
         self.ruler_spinBox.setObjectName('ruler')
 
+        # 迭代次数  iterate_times
+        self.iterateTimes_spinBox = QSpinBox()
+        self.iterateTimes_spinBox.setMinimum(0)
+        self.iterateTimes_spinBox.setMaximum(100)
+        self.iterateTimes_spinBox.setSingleStep(1)
+        self.iterateTimes_spinBox.setObjectName('iterate_times')
+
+        self.checkbox_layout = QHBoxLayout()
+        # 是否显示边界
+        self._edge_checkBox = QCheckBox()
+        self.checkbox1 = QCheckBox('显示边界')
+        self.checkbox_layout.addWidget(self.checkbox1)
+        self.checkboxWidget = QWidget()
+        self.checkbox1.setObjectName('edge')
+
+        # 是否色彩填充
+        self._color_checkBox = QCheckBox()
+        self.checkbox2 = QCheckBox('色彩填充')
+        self.checkbox_layout.addWidget(self.checkbox2)
+        self.checkboxWidget = QWidget()
+        self.checkbox2.setObjectName('color_fill')
+
+        self.checkboxWidget.setLayout(self.checkbox_layout)
+        self.setColumnCount(2)
+        self.setRowCount(6)
+
+        self.setItem(0, 0, QTableWidgetItem('算法选择'))
+        self.setCellWidget(0, 1, self.algorithm_box)
+        self.setItem(1, 0, QTableWidgetItem('平均超像素大小'))
+        self.setCellWidget(1, 1, self.region_size_spinBox)
+        self.setItem(2, 0, QTableWidgetItem('超像素平滑度'))
+        self.setCellWidget(2, 1, self.ruler_spinBox)
+        self.setItem(3, 0, QTableWidgetItem('迭代次数'))
+        self.setCellWidget(3, 1, self.iterateTimes_spinBox)
+
+        self.setSpan(4, 0, 1, 2)
+        self.setSpan(5, 0, 1, 2)
+
+        self.start_Button = QPushButton('确定')
+        self.start_Button.clicked.connect(self.button_click)
+        self.buttonLayout = QHBoxLayout()
+        self.buttonLayout.addWidget(self.start_Button)
+        self.buttonWidget = QWidget()
+        self.buttonWidget.setLayout(self.buttonLayout)
+
+        self.verticalHeader().resizeSection(4, 50)
+        self.verticalHeader().resizeSection(5, 60)
+
+        self.setCellWidget(4, 0, self.checkboxWidget)
+        self.setCellWidget(5, 0, self.buttonWidget)  # 设置按钮 Widget 在单元格中水平和垂直居中
+
+    def button_click(self):
+        self.update_item()
+
+
+class OpenCVSEEDSTableWidget(TableWidget):
+    def __init__(self, parent=None):
+        super(OpenCVSEEDSTableWidget, self).__init__(parent=parent)
+        # 超像素数目
+        self.num_superpixels_spinBox = QSpinBox()
+        self.num_superpixels_spinBox.setMinimum(1)
+        self.num_superpixels_spinBox.setMaximum(10000)
+        self.num_superpixels_spinBox.setSingleStep(1)
+        self.num_superpixels_spinBox.setObjectName('num_superpixels')
+
+        # 块级别数
+        self.num_levels_spinBox = QSpinBox()
+        self.num_levels_spinBox.setMinimum(0)
+        self.num_levels_spinBox.setMaximum(50)
+        self.num_levels_spinBox.setSingleStep(1)
+        self.num_levels_spinBox.setObjectName('num_levels')
+
+        # 迭代次数  iterate_times
+        self.iterateTimes_spinBox = QSpinBox()
+        self.iterateTimes_spinBox.setMinimum(0)
+        self.iterateTimes_spinBox.setMaximum(100)
+        self.iterateTimes_spinBox.setSingleStep(1)
+        self.iterateTimes_spinBox.setObjectName('iterate_times')
+
         self.checkbox_layout = QHBoxLayout()
         # 是否显示边界
         self._edge_checkBox = QCheckBox()
@@ -212,12 +291,13 @@ class OpenCVSLICTableWidget(TableWidget):
         self.setColumnCount(2)
         self.setRowCount(5)
 
-        self.setItem(0, 0, QTableWidgetItem('算法选择'))
-        self.setCellWidget(0, 1, self.algorithm_box)
-        self.setItem(1, 0, QTableWidgetItem('平均超像素大小'))
-        self.setCellWidget(1, 1, self.region_size_spinBox)
-        self.setItem(2, 0, QTableWidgetItem('超像素平滑度'))
-        self.setCellWidget(2, 1, self.ruler_spinBox)
+        self.setItem(0, 0, QTableWidgetItem('超像素数目'))
+        self.setCellWidget(0, 1, self.num_superpixels_spinBox)
+        self.setItem(1, 0, QTableWidgetItem('块级别数'))
+        self.setCellWidget(1, 1, self.num_levels_spinBox)
+        self.setItem(2, 0, QTableWidgetItem('迭代次数'))
+        self.setCellWidget(2, 1, self.iterateTimes_spinBox)
+
         self.setSpan(3, 0, 1, 2)
         self.setSpan(4, 0, 1, 2)
 

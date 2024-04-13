@@ -14,7 +14,7 @@ class FileController:
                                                    options=options)
         if file_name:
             print("Selected file:", file_name)
-            if file_name.endswith(('.jpg', '.png', '.bmp')):
+            if file_name.endswith(('.jpg', '.png', '.bmp', '.jpeg')):
                 src_img = cv2.imdecode(np.fromfile(file_name, dtype=np.uint8), -1)
                 if src_img is not None:
                     return src_img
