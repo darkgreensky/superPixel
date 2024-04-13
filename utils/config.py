@@ -10,6 +10,7 @@ items = [
     SkimageSLICItem,
     OpenCVSLICItem,
     OpenCVSEEDSItem,
+    OpenCVLSCItem,
 ]
 
 tables = [
@@ -19,5 +20,6 @@ tables = [
     SkimageSLICTableWidget,
     OpenCVSLICTableWidget,
     OpenCVSEEDSTableWidget,
+    OpenCVLSCTableWidget,
 ]
 

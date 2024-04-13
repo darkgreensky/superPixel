@@ -1,7 +1,8 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from src.fileController import FileController
-from src.listWidgetItems import GrayingItem, EdgeItem, GammaItem, SkimageSLICItem, OpenCVSLICItem, OpenCVSEEDSItem
+from src.listWidgetItems import GrayingItem, EdgeItem, GammaItem, SkimageSLICItem, OpenCVSLICItem, OpenCVSEEDSItem, \
+    OpenCVLSCItem
 from utils.icons import Icons
 
 
@@ -87,7 +88,7 @@ class MenuBar(QtWidgets.QMenuBar):
         self.Skimage_SLIC_action.setObjectName("Skimage_SLIC")
         self.Skimage_SLIC_action.setText("Skimage-SLIC")
         self.Skimage_SLIC_action.triggered.connect(self.Skimage_SLIC_action_handle)
-        self.algorithm_menu.addAction(self.Skimage_SLIC_action)
+        # self.algorithm_menu.addAction(self.Skimage_SLIC_action)
 
         self.OpenCV_SLIC_action = QtWidgets.QAction(self.mainwindow)
         self.OpenCV_SLIC_action.setObjectName("OpenCV_SLIC")
@@ -99,6 +100,12 @@ class MenuBar(QtWidgets.QMenuBar):
         self.OpenCV_SEEDS_action.setObjectName("OpenCV_SEEDS")
         self.OpenCV_SEEDS_action.setText("OpenCV-SEEDS")
         self.OpenCV_SEEDS_action.triggered.connect(self.OpenCV_SEEDS_action_handle)
+        self.algorithm_menu.addAction(self.OpenCV_SEEDS_action)
+
+        self.OpenCV_SEEDS_action = QtWidgets.QAction(self.mainwindow)
+        self.OpenCV_SEEDS_action.setObjectName("OpenCV_LSC")
+        self.OpenCV_SEEDS_action.setText("OpenCV-LSC")
+        self.OpenCV_SEEDS_action.triggered.connect(self.OpenCV_LSC_action_handle)
         self.algorithm_menu.addAction(self.OpenCV_SEEDS_action)
 
     def open_file(self) -> None:
@@ -132,4 +139,8 @@ class MenuBar(QtWidgets.QMenuBar):
 
     def OpenCV_SEEDS_action_handle(self) -> None:
         func_item = OpenCVSEEDSItem()
+        self.mainwindow.funcListWidget.add_used_function(func_item)
+
+    def OpenCV_LSC_action_handle(self) -> None:
+        func_item = OpenCVLSCItem()
         self.mainwindow.funcListWidget.add_used_function(func_item)

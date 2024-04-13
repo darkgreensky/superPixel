@@ -5,6 +5,8 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QListWidgetItem
 
 from skimage.segmentation import slic
+from skimage.segmentation import mark_boundaries
+
 
 
 class MyItem(QListWidgetItem):
@@ -82,10 +84,10 @@ class EdgeItem(MyItem):
 class GammaItem(MyItem):
     def __init__(self, parent=None):
         super(GammaItem, self).__init__('伽马校正', parent=parent)
-        self._gamma = 1
+        self._gamma = 100
 
     def __call__(self, img):
-        gamma_table = [np.power(x / 255.0, self._gamma) * 255.0 for x in range(256)]
+        gamma_table = [np.power(x / 255.0, self._gamma / 100) * 255.0 for x in range(256)]
         gamma_table = np.round(np.array(gamma_table)).astype(np.uint8)
         return cv2.LUT(img, gamma_table)
 
@@ -97,14 +99,23 @@ class SkimageSLICItem(MyItem):
         self._compactness = 10
         self._sigma = 1
 
+        self._edge = True
+        self._color_fill = True
+
     def __call__(self, img):
         # 执行 SLIC 超像素分割
         segments = slic(img, n_segments=self._num_segments, compactness=self._compactness, sigma=self._sigma)
         # 根据超像素的平均颜色对超像素进行着色
-        segmented_img = self.color_segments(img, segments)
 
-        return segmented_img
-        # segments
+        result_img = img
+        if self._color_fill:
+            result_img = self.color_segments(img, segments)
+
+        if self._edge:
+            boundaries = mark_boundaries(result_img, segments, color=(0, 0, 0), mode='subpixel')
+            result_img = (boundaries * 255).astype(np.uint8)
+
+        return result_img
 
 
 class OpenCVSLICItem(MyItem):
@@ -125,8 +136,6 @@ class OpenCVSLICItem(MyItem):
         slic = cv2.ximgproc.createSuperpixelSLIC(img, algorithm=self.alg[self._algorithm][1],
                                                  region_size=self._region_size, ruler=self._ruler)
         slic.iterate(self._iterate_times)
-        # number_slic = slic.getNumberOfSuperpixels()  # 获取超像素数目
-
         result_img = img
         if self._color_fill:
             label_slic = slic.getLabels()  # 获取超像素标签
@@ -134,6 +143,7 @@ class OpenCVSLICItem(MyItem):
 
         if self._edge:
             mask_slic = slic.getLabelContourMask()  # 获取Mask，超像素边缘Mask==1
+            print(mask_slic)
             mask_inv_slic = cv2.bitwise_not(mask_slic)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_slic)  # 在原图上绘制超像素边界
 
@@ -158,8 +168,6 @@ class OpenCVSEEDSItem(MyItem):
                                                    self._num_levels,
                                                    self._prior, self._histogram_bins, self._double_step)
         seeds.iterate(img, self._iterate_times)  # 输入图像大小必须与初始化形状相同，迭代次数为10
-        # number_seeds = seeds.getNumberOfSuperpixels()
-
         result_img = img
         if self._color_fill:
             label_seeds = seeds.getLabels()
@@ -169,5 +177,30 @@ class OpenCVSEEDSItem(MyItem):
             mask_seeds = seeds.getLabelContourMask()
             mask_inv_seeds = cv2.bitwise_not(mask_seeds)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_seeds)
+
+        return result_img
+
+
+class OpenCVLSCItem(MyItem):
+    def __init__(self, parent=None):
+        super(OpenCVLSCItem, self).__init__(' OpenCV-LSC ', parent=parent)
+        self._region_size = 10
+        self._ratio = 75
+        self._iterate_times = 10
+        self._edge = False
+        self._color_fill = True
+
+    def __call__(self, img):
+        lsc = cv2.ximgproc.createSuperpixelLSC(img, self._region_size, self._ratio / 1000.0)
+        lsc.iterate(self._iterate_times)
+        result_img = img
+        if self._color_fill:
+            label_lsc = lsc.getLabels()
+            result_img = self.color_segments(img, label_lsc)
+
+        if self._edge:
+            mask_lsc = lsc.getLabelContourMask()
+            mask_inv_lsc = cv2.bitwise_not(mask_lsc)
+            result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_lsc)
 
         return result_img

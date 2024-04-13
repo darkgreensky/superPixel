@@ -43,7 +43,7 @@ class TableWidget(QTableWidget):
         for combox in self.findChildren(QCheckBox):
             param[combox.objectName()] = combox.isChecked()
         for slider in self.findChildren(QSlider):
-            param[slider.objectName()] = slider.value() / 100.0
+            param[slider.objectName()] = slider.value()
         return param
 
 
@@ -87,9 +87,10 @@ class GammaITabelWidget(TableWidget):
         self.gamma_slider.setMinimum(0)
         self.gamma_slider.setMaximum(300)  # 设置最大值，这个值可以根据您的需要进行调整
         self.gamma_slider.setSingleStep(1)
+        self.gamma_slider.setValue(100)
         self.gamma_slider.setObjectName('gamma')
 
-        self.gamma_lineedit = QLineEdit()
+        self.gamma_lineedit = QLineEdit('1.0')
         self.gamma_lineedit.setValidator(QDoubleValidator())  # 设置验证器，只允许输入浮点数3
         self.gamma_lineedit.setFixedWidth(50)  # 设置输入框的宽度
 
@@ -316,3 +317,99 @@ class OpenCVSEEDSTableWidget(TableWidget):
 
     def button_click(self):
         self.update_item()
+
+
+class OpenCVLSCTableWidget(TableWidget):
+    def __init__(self, parent=None):
+        super(OpenCVLSCTableWidget, self).__init__(parent=parent)
+        # 平均超像素大小
+        self.num_superpixels_spinBox = QSpinBox()
+        self.num_superpixels_spinBox.setMinimum(1)
+        self.num_superpixels_spinBox.setMaximum(500)
+        self.num_superpixels_spinBox.setSingleStep(1)
+        self.num_superpixels_spinBox.setObjectName('region_size')
+
+        # 紧凑度因子
+        self.num_levels_slider = QSlider()
+        self.num_levels_slider.setOrientation(Qt.Horizontal)
+        self.num_levels_slider.setMinimum(0)
+        self.num_levels_slider.setMaximum(1000)
+        self.num_levels_slider.setSingleStep(1)
+        self.num_levels_slider.setValue(75)
+        self.num_levels_slider.setObjectName('ratio')
+        self.num_levels_lineedit = QLineEdit('0.075')
+        self.num_levels_lineedit.setValidator(QDoubleValidator())
+        self.num_levels_lineedit.setFixedWidth(50)
+        self.setColumnCount(2)
+        self.setRowCount(1)
+        self.setItem(0, 0, QTableWidgetItem('ratio'))
+        layout = QHBoxLayout()
+        layout.addWidget(self.num_levels_slider)
+        layout.addWidget(self.num_levels_lineedit)
+        layout.setContentsMargins(0, 0, 0, 0)
+        num_levels_widget = QWidget()
+        num_levels_widget.setLayout(layout)
+        self.num_levels_slider.valueChanged.connect(self.update_lineedit)
+        self.num_levels_lineedit.editingFinished.connect(self.update_slider)
+
+        # 迭代次数
+        self.iterateTimes_spinBox = QSpinBox()
+        self.iterateTimes_spinBox.setMinimum(0)
+        self.iterateTimes_spinBox.setMaximum(100)
+        self.iterateTimes_spinBox.setSingleStep(1)
+        self.iterateTimes_spinBox.setObjectName('iterate_times')
+
+        self.checkbox_layout = QHBoxLayout()
+        # 是否显示边界
+        self._edge_checkBox = QCheckBox()
+        self.checkbox1 = QCheckBox('显示边界')
+        self.checkbox_layout.addWidget(self.checkbox1)
+        self.checkboxWidget = QWidget()
+        self.checkbox1.setObjectName('edge')
+
+        # 是否色彩填充
+        self._color_checkBox = QCheckBox()
+        self.checkbox2 = QCheckBox('色彩填充')
+        self.checkbox_layout.addWidget(self.checkbox2)
+        self.checkboxWidget = QWidget()
+        self.checkbox2.setObjectName('color_fill')
+
+        self.checkboxWidget.setLayout(self.checkbox_layout)
+        self.setColumnCount(2)
+        self.setRowCount(5)
+
+        self.setItem(0, 0, QTableWidgetItem('平均超像素大小'))
+        self.setCellWidget(0, 1, self.num_superpixels_spinBox)
+        self.setItem(1, 0, QTableWidgetItem('紧凑度因子'))
+        self.setCellWidget(1, 1, num_levels_widget)
+        self.setItem(2, 0, QTableWidgetItem('迭代次数'))
+        self.setCellWidget(2, 1, self.iterateTimes_spinBox)
+
+        self.setSpan(3, 0, 1, 2)
+        self.setSpan(4, 0, 1, 2)
+
+        self.start_Button = QPushButton('确定')
+        self.start_Button.clicked.connect(self.button_click)
+        self.buttonLayout = QHBoxLayout()
+        self.buttonLayout.addWidget(self.start_Button)
+        self.buttonWidget = QWidget()
+        self.buttonWidget.setLayout(self.buttonLayout)
+
+        self.verticalHeader().resizeSection(3, 50)
+        self.verticalHeader().resizeSection(4, 60)
+
+        self.setCellWidget(3, 0, self.checkboxWidget)
+        self.setCellWidget(4, 0, self.buttonWidget)  # 设置按钮 Widget 在单元格中水平和垂直居中
+
+    def button_click(self):
+        self.update_item()
+
+    def update_lineedit(self):
+        value = self.num_levels_slider.value() / 1000.0  # 根据需要进行调整
+        self.num_levels_lineedit.setText(str(value))
+
+    def update_slider(self):
+        text = self.num_levels_lineedit.text()
+        if text:
+            value = float(text)
+            self.num_levels_slider.setValue(int(value * 1000))  # 根据需要进行调整
