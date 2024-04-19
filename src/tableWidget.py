@@ -1,12 +1,13 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QDoubleValidator
+from PyQt5.QtWidgets import QTableWidget, QAbstractItemView, QHeaderView, QWidget, QSpinBox, QDoubleSpinBox, QComboBox, \
+    QCheckBox, QSlider, QTableWidgetItem, QLineEdit, QHBoxLayout, QPushButton
 
 
 class TableWidget(QTableWidget):
     def __init__(self, parent=None):
         super(TableWidget, self).__init__(parent=parent)
-        self.mainwindow = parent
+        self.main_window = parent
         self.setShowGrid(True)  # 显示网格
         self.setAlternatingRowColors(True)  # 隔行显示颜色
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -19,8 +20,8 @@ class TableWidget(QTableWidget):
 
     def update_item(self):
         param = self.get_params()
-        self.mainwindow.useListWidget.currentItem().update_params(param)
-        self.mainwindow.update_image()
+        self.main_window.useListWidget.currentItem().update_params(param)
+        self.main_window.update_image()
 
     def update_params(self, param=None):
         for key in param.keys():

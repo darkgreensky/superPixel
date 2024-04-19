@@ -1,6 +1,6 @@
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QCursor
+from PyQt5.QtWidgets import QListWidget, QListView, QAbstractItemView, QMenu, QAction
 
 from utils.config import items
 
@@ -8,10 +8,10 @@ from utils.config import items
 class MyListWidget(QListWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.mainwindow = parent
+        self.main_window = parent
         self.setDragEnabled(True)
         # 选中不显示虚线
-        # self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.setFocusPolicy(Qt.NoFocus)
 
 
@@ -30,7 +30,8 @@ class UsedListWidget(MyListWidget):
     def contextMenuEvent(self, e):
         # 右键菜单事件
         item = self.itemAt(self.mapFromGlobal(QCursor.pos()))
-        if not item: return  # 判断是否是空白区域
+        if not item:
+            return  # 判断是否是空白区域
         menu = QMenu()
         delete_action = QAction('删除', self)
         delete_action.triggered.connect(lambda: self.delete_item(item))  # 传递额外值
@@ -40,22 +41,23 @@ class UsedListWidget(MyListWidget):
     def delete_item(self, item):
         # 删除操作
         self.takeItem(self.row(item))
-        self.mainwindow.update_image()  # 更新frame
-        self.mainwindow.dock_attr.close()
+        self.main_window.update_image()  # 更新frame
+        self.main_window.dock_attr.close()
 
     def dropEvent(self, event):
         super().dropEvent(event)
-        self.mainwindow.update_image()
+        self.main_window.update_image()
 
     def show_attr(self):
         item = self.itemAt(self.mapFromGlobal(QCursor.pos()))
-        if not item: return
+        if not item:
+            return
         param = item.get_params()  # 获取当前item的属性
         if type(item) in items:
             index = items.index(type(item))  # 获取item对应的table索引
-            self.mainwindow.stackedWidget.setCurrentIndex(index)
-            self.mainwindow.stackedWidget.currentWidget().update_params(param)  # 更新对应的table
-            self.mainwindow.dock_attr.show()
+            self.main_window.stackedWidget.setCurrentIndex(index)
+            self.main_window.stackedWidget.currentWidget().update_params(param)  # 更新对应的table
+            self.main_window.dock_attr.show()
 
 
 class FuncListWidget(MyListWidget):
@@ -66,5 +68,5 @@ class FuncListWidget(MyListWidget):
         # func_item = self.currentItem()
         if type(func_item) in items:
             use_item = type(func_item)()
-            self.mainwindow.useListWidget.addItem(use_item)
-            self.mainwindow.update_image()
+            self.main_window.useListWidget.addItem(use_item)
+            self.main_window.update_image()

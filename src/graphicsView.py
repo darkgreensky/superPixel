@@ -1,8 +1,7 @@
 import cv2
-
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt, QRectF
+from PyQt5.QtGui import QCursor, QImage, QPixmap
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsPixmapItem, QGraphicsScene, QMenu, QAction, QFileDialog
 
 
 class GraphicsView(QGraphicsView):
@@ -46,7 +45,8 @@ class GraphicsView(QGraphicsView):
         self.update_image(img)
         self.fitInView()
 
-    def img_to_pixmap(self, img):
+    @staticmethod
+    def img_to_pixmap(img):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # bgr -> rgb
         h, w, c = img.shape  # 获取图片形状
         image = QImage(img, w, h, 3 * w, QImage.Format_RGB888)
@@ -56,17 +56,17 @@ class GraphicsView(QGraphicsView):
         self._empty = False
         self._photo.setPixmap(self.img_to_pixmap(img))
 
-    def fitInView(self, scale=True):
+    def fitInView(self, *args, **kwargs):
         rect = QRectF(self._photo.pixmap().rect())
         if not rect.isNull():
             self.setSceneRect(rect)
             if self.has_photo():
                 unity = self.transform().mapRect(QRectF(0, 0, 1, 1))
                 self.scale(1 / unity.width(), 1 / unity.height())
-                viewrect = self.viewport().rect()
-                scenerect = self.transform().mapRect(rect)
-                factor = min(viewrect.width() / scenerect.width(),
-                             viewrect.height() / scenerect.height())
+                view_rect = self.viewport().rect()
+                scene_rect = self.transform().mapRect(rect)
+                factor = min(view_rect.width() / scene_rect.width(),
+                             view_rect.height() / scene_rect.height())
                 self.scale(factor, factor)
             self._zoom = 0
 
