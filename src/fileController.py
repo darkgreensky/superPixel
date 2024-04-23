@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
-from src.listWidgetItems import MyItem
 from utils.data import Data
 
 
@@ -154,6 +153,14 @@ class FileController:
             true_labels[y, x1: x2] = s
         return true_labels, num_segments, segmented_img
 
-
-
-
+    @staticmethod
+    def save_evaluation_data(parent, co, ue, rec, asa):
+        file_path, _ = QFileDialog.getSaveFileName(parent, "保存文件", "", "txt files (*.txt);;All files (*)")
+        if file_path:
+            with open(file_path, 'w') as f:
+                f.write("紧凑度\t\t{}\n".format(co))
+                f.write("欠分割误差\t{}\n".format(ue))
+                f.write("边界召回率\t{}\n".format(rec))
+                f.write("可达分割精度\t{}\n".format(asa))
+        QMessageBox.information(parent, "提示", "数据已保存到文件:{}".format(file_path),
+                                QMessageBox.Ok)

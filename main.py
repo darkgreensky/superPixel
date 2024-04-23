@@ -10,6 +10,7 @@ from src.graphicsView import GraphicsView
 from src.listWidgets import FuncListWidget
 from src.listWidgets import UsedListWidget
 from utils.icons import Icons
+from utils.messageBox import MessageBox
 
 
 class MyApp(QMainWindow):
@@ -23,8 +24,8 @@ class MyApp(QMainWindow):
         self.graphicsView = GraphicsView(self)
         self.evaluation = Evaluation(self)
         self.attribute = Attribute(self)
+        self.messageBox = MessageBox(self)
         self.menu = MenuBar(self)
-        self.icons = Icons()
 
         # 已选操作
         self.dock_used = QDockWidget(self)
@@ -47,7 +48,7 @@ class MyApp(QMainWindow):
 
         # title and icon
         self.setWindowTitle('Opencv图像处理')
-        icon = self.icons.create_svg_icon(self.icons.grape)
+        icon = Icons.create_svg_icon(Icons.grape)
         self.setWindowIcon(icon)
 
         self.src_img = None

@@ -1,10 +1,8 @@
 import cv2
 import numpy as np
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QDialog, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox
 
 from src.fileController import FileController
-from src.listWidgetItems import MyItem
 from utils.data import Data
 
 
@@ -12,13 +10,6 @@ class Evaluation(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.main_window = parent
-        self.setWindowTitle("Data Display")
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)  # 去除问号按钮
-        layout = QVBoxLayout(self)
-
-        # 添加一个标签到布局中
-        self.label = QLabel("This is a Data Display", self)
-        layout.addWidget(self.label)
 
     def open_human_segment(self):
         true_label, num_segments, segmented_img = FileController.open_seg_label_of_human(self)
@@ -26,8 +17,7 @@ class Evaluation(QDialog):
             print("close")
             return
         Data.update_human_img_info(true_label, num_segments, True, segmented_img)
-        self.main_window.menu.open_human_segment_image_action.setEnabled(True)
-        self.check_menu_enable()
+        self.main_window.menu.check_menu_enable()
         cv2.imshow("Human Segment Image", segmented_img)
 
     def open_algorithm_segment(self):
@@ -36,17 +26,18 @@ class Evaluation(QDialog):
             print("close")
             return
         Data.update_img_info(true_label, num_segments, True, segmented_img)
-        self.main_window.menu.open_segment_image_action.setEnabled(True)
-        self.check_menu_enable()
+        self.main_window.menu.check_menu_enable()
         cv2.imshow("Segment Image", segmented_img)
 
-# ----------------------------------------------------------------------------------------------------------------------
-#       compactness 紧凑度
-# ----------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    #       compactness 紧凑度
+    # ------------------------------------------------------------------------------------------------------------------
 
-    def calculate_compactness_handle(self):
-        print(self.calculate_compactness(Data.img_label))
-        # self.label.setText(str(self.calculate_compactness(Data.img_label)))
+    def calculate_compactness_handle(self, message=True):
+        res = self.calculate_compactness(Data.img_label)
+        if message:
+            self.main_window.messageBox.get_message("紧凑度: {:.6f}".format(res), "紧凑度")
+        return res
 
     def calculate_compactness(self, segmented_labels):
         compactness = []
@@ -58,13 +49,16 @@ class Evaluation(QDialog):
             compactness.append(perimeter ** 2 / (4 * np.pi * area))
         return np.mean(compactness)
 
-# ----------------------------------------------------------------------------------------------------------------------
-#       undersegmentation_error  欠分割误差
-# ----------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    #       undersegmentation_error  欠分割误差
+    # ------------------------------------------------------------------------------------------------------------------
 
-    def compute_undersegmentation_error_handel(self):
+    def compute_undersegmentation_error_handle(self, message=True):
         if Data.have_img_label and Data.have_human_label:
-            self.compute_undersegmentation_error(Data.img_label, Data.human_label)
+            res = self.compute_undersegmentation_error(Data.img_label, Data.human_label)
+            if message:
+                self.main_window.messageBox.get_message("欠分割误差: {:.6f}".format(res), "欠分割误差")
+            return res
         else:
             if Data.have_img_label is False and Data.have_human_label is False:
                 QMessageBox.information(self, "提示", "缺少图片分割数据和人工分割数据",
@@ -78,10 +72,12 @@ class Evaluation(QDialog):
             else:
                 QMessageBox.information(self, "提示", "异常错误",
                                         QMessageBox.Yes)
+            return None
 
     def compute_intersection_matrix(self, labels, gt):
         if labels.shape != gt.shape:
-            print("Superpixel segmentation does not match ground truth size.")
+            QMessageBox.critical(self, "错误", "Superpixel segmentation does not match ground truth size.",
+                                 QMessageBox.Yes)
             return None, None, None
 
         superpixels = np.max(labels) + 1
@@ -102,7 +98,8 @@ class Evaluation(QDialog):
 
     def compute_undersegmentation_error(self, labels, gt):
         if labels.shape != gt.shape:
-            print("Superpixel segmentation does not match ground truth size.")
+            QMessageBox.critical(self, "错误", "Superpixel segmentation does not match ground truth size.",
+                                 QMessageBox.Yes)
             return None
 
         H, W = gt.shape
@@ -124,29 +121,23 @@ class Evaluation(QDialog):
                     min_diff = superpixel_j_minus_gt_i
 
             error += min_diff
-        print(error / N)
         return error / N
 
-    #     def calculate_undersegmentation_error(self, true_labels, segmented_labels):
-    #         ue_count = 0
-    #         for label in np.unique(true_labels):
-    #             unique_segmented_labels, counts = np.unique(segmented_labels[true_labels == label], return_counts=True)
-    #             ue_count += np.sum(counts) - np.max(counts)
-    #         print(true_labels.size)
-    #         ue = ue_count / true_labels.size
-    #         ue = 1
-    #         return ue
+    # ------------------------------------------------------------------------------------------------------------------
+    #       boundary_recall 边缘召回率
+    # ------------------------------------------------------------------------------------------------------------------
 
-# ----------------------------------------------------------------------------------------------------------------------
-#       boundary_recall 边缘召回率
-# ----------------------------------------------------------------------------------------------------------------------
-
-    def compute_boundary_recall_action_handel(self):
-        print(self.compute_boundary_recall(Data.img_label, Data.human_label, 0.0025))
+    def compute_boundary_recall_action_handle(self, message=True):
+        res = self.compute_boundary_recall(Data.img_label, Data.human_label, 0.0025)
+        if message:
+            self.main_window.messageBox.get_message("边缘召回率: {:.6f}".format(res), "边缘召回率")
+        return res
 
     def compute_boundary_recall(self, labels, gt, d: float):
         if labels.shape != gt.shape:
-            raise ValueError("Superpixel segmentation does not match ground truth size.")
+            QMessageBox.critical(self, "错误", "Superpixel segmentation does not match ground truth size.",
+                                 QMessageBox.Yes)
+            return None
 
         H, W = gt.shape
         r = int(round(d * np.sqrt(H * H + W * W)))
@@ -192,9 +183,43 @@ class Evaluation(QDialog):
 
         return False
 
-# ----------------------------------------------------------------------------------------------------------------------
-#
-# ----------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
+    #       achievable_segmentation_accuracy 可达分割精度
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def compute_achievable_segmentation_accuracy_handle(self, message=True):
+        res = self.compute_achievable_segmentation_accuracy(Data.img_label, Data.human_label)
+        if message:
+            self.main_window.messageBox.get_message("可达分割精度: {:.6f}".format(res), "可达分割精度")
+        return res
+
+    def compute_achievable_segmentation_accuracy(self, labels, gt):
+        if labels.shape != gt.shape:
+            QMessageBox.critical(self, "错误", "Superpixel segmentation does not match ground truth size.",
+                                 QMessageBox.Yes)
+            return None
+
+        H, W = gt.shape[:2]
+        N = H * W
+
+        intersection_matrix, superpixel_sizes, gt_sizes = self.compute_intersection_matrix(labels, gt)
+
+        accuracy = 0
+        for j in range(intersection_matrix.shape[1]):
+            max_intersection = np.max(intersection_matrix[:, j])
+            accuracy += max_intersection
+
+        return accuracy / N
+
+    # ------------------------------------------------------------------------------------------------------------------
+    #
+    # ------------------------------------------------------------------------------------------------------------------
+    def save_evaluation_data(self):
+        co = self.calculate_compactness_handle(False)
+        ue = self.compute_undersegmentation_error_handle(False)
+        rec = self.compute_boundary_recall_action_handle(False)
+        asa = self.compute_achievable_segmentation_accuracy_handle(False)
+        FileController.save_evaluation_data(self, co, ue, rec, asa)
 
     def open_human_segment_image(self):
         if Data.have_human_segmented_img:
@@ -203,10 +228,3 @@ class Evaluation(QDialog):
     def open_segment_image(self):
         if Data.have_segmented_img:
             cv2.imshow("Segment Image", Data.segmented_img)
-
-    def check_menu_enable(self):
-        if Data.have_img_label:
-            self.main_window.menu.compactness_action.setEnabled(True)
-            if Data.have_human_label:
-                self.main_window.menu.undersegmentation_error_action.setEnabled(True)
-                self.main_window.menu.compute_boundary_recall_action.setEnabled(True)

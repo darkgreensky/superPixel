@@ -22,7 +22,6 @@ class Data:
     @staticmethod
     def add_observer(observer):
         Data._observers.append(observer)
-        print(observer)
 
     @staticmethod
     def remove_observer(observer):

@@ -12,8 +12,6 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.main_window = parent
-        self.file_control = FileController(self)
-        self.icons = Icons()
 
         Data.add_observer(self)
 
@@ -43,7 +41,7 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         self.save_label_action.setObjectName("save_label")
         self.save_label_action.setText("保存分割数据")
         # self.save_label_action.setShortcut("Ctrl+S")
-        self.save_label_action.setIcon(self.icons.create_svg_icon(self.icons.save_segment))
+        self.save_label_action.setIcon(Icons.create_svg_icon(Icons.save_segment))
         # self.save_label_action.setIcon(QtWidgets.QApplication.style().standardIcon(QtWidgets.QStyle.SP_DialogSaveButton))
         self.save_label_action.triggered.connect(self.save_label)
         self.file_menu.addAction(self.save_label_action)
@@ -66,7 +64,7 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         self.basic_menu = QtWidgets.QMenu(self)
         self.basic_menu.setObjectName("basic_menu")
         self.basic_menu.setTitle("图像操作")
-        self.basic_menu.setIcon(self.icons.create_svg_icon(self.icons.watermelon))
+        self.basic_menu.setIcon(Icons.create_svg_icon(Icons.watermelon))
         self.image_menu.addAction(self.basic_menu.menuAction())
 
         self.graying_action = QtWidgets.QAction(self.main_window)
@@ -91,13 +89,13 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         self.algorithm_menu = QtWidgets.QMenu(self)
         self.algorithm_menu.setObjectName("algorithm_menu")
         self.algorithm_menu.setTitle("超像素分割")
-        self.algorithm_menu.setIcon(self.icons.create_svg_icon(self.icons.cherry))
+        self.algorithm_menu.setIcon(Icons.create_svg_icon(Icons.cherry))
         self.image_menu.addAction(self.algorithm_menu.menuAction())
 
-        self.Skimage_SLIC_action = QtWidgets.QAction(self.main_window)
-        self.Skimage_SLIC_action.setObjectName("Skimage_SLIC")
-        self.Skimage_SLIC_action.setText("Skimage-SLIC")
-        self.Skimage_SLIC_action.triggered.connect(self.Skimage_SLIC_action_handle)
+        # self.Skimage_SLIC_action = QtWidgets.QAction(self.main_window)
+        # self.Skimage_SLIC_action.setObjectName("Skimage_SLIC")
+        # self.Skimage_SLIC_action.setText("Skimage-SLIC")
+        # self.Skimage_SLIC_action.triggered.connect(self.Skimage_SLIC_action_handle)
         # self.algorithm_menu.addAction(self.Skimage_SLIC_action)
 
         self.OpenCV_SLIC_action = QtWidgets.QAction(self.main_window)
@@ -127,47 +125,62 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         self.open_human_segment_action = QtWidgets.QAction(self.main_window)
         self.open_human_segment_action.setObjectName("open_human_segment")
         self.open_human_segment_action.setText("打开人工分割数据")
-        self.open_human_segment_action.triggered.connect(self.open_human_segment_action_handel)
+        self.open_human_segment_action.triggered.connect(self.open_human_segment_action_handle)
         self.evaluation_menu.addAction(self.open_human_segment_action)
 
         self.open_algorithm_segment_action = QtWidgets.QAction(self.main_window)
         self.open_algorithm_segment_action.setObjectName("open_algorithm_segment")
         self.open_algorithm_segment_action.setText("打开分割数据")
-        self.open_algorithm_segment_action.triggered.connect(self.open_algorithm_segment_action_handel)
+        self.open_algorithm_segment_action.triggered.connect(self.open_algorithm_segment_action_handle)
         self.evaluation_menu.addAction(self.open_algorithm_segment_action)
 
         self.compactness_action = QtWidgets.QAction(self.main_window)
         self.compactness_action.setObjectName("compactness")
         self.compactness_action.setText("紧凑度")
-        self.compactness_action.triggered.connect(self.compactness_action_handel)
+        self.compactness_action.triggered.connect(self.compactness_action_handle)
         self.compactness_action.setEnabled(False)
         self.evaluation_menu.addAction(self.compactness_action)
 
         self.undersegmentation_error_action = QtWidgets.QAction(self.main_window)
         self.undersegmentation_error_action.setObjectName("undersegmentation_error")
         self.undersegmentation_error_action.setText("欠分割误差")
-        self.undersegmentation_error_action.triggered.connect(self.undersegmentation_error_action_handel)
+        self.undersegmentation_error_action.triggered.connect(self.undersegmentation_error_action_handle)
         self.undersegmentation_error_action.setEnabled(False)
         self.evaluation_menu.addAction(self.undersegmentation_error_action)
 
         self.compute_boundary_recall_action = QtWidgets.QAction(self.main_window)
         self.compute_boundary_recall_action.setObjectName("boundary_recall")
         self.compute_boundary_recall_action.setText("边缘召回率")
-        self.compute_boundary_recall_action.triggered.connect(self.compute_boundary_recall_action_handel)
+        self.compute_boundary_recall_action.triggered.connect(self.compute_boundary_recall_action_handle)
         self.compute_boundary_recall_action.setEnabled(False)
         self.evaluation_menu.addAction(self.compute_boundary_recall_action)
+
+        self.achievable_segmentation_accuracy_action = QtWidgets.QAction(self.main_window)
+        self.achievable_segmentation_accuracy_action.setObjectName("achievable_segmentation_accuracy")
+        self.achievable_segmentation_accuracy_action.setText("可达分割精度")
+        self.achievable_segmentation_accuracy_action.triggered.connect(
+            self.achievable_segmentation_accuracy_action_handle)
+        self.achievable_segmentation_accuracy_action.setEnabled(False)
+        self.evaluation_menu.addAction(self.achievable_segmentation_accuracy_action)
+
+        self.save_evaluation_data_action = QtWidgets.QAction(self.main_window)
+        self.save_evaluation_data_action.setObjectName("save_evaluation_data")
+        self.save_evaluation_data_action.setText("保存评估数据")
+        self.save_evaluation_data_action.triggered.connect(self.save_evaluation_data_handle)
+        self.save_evaluation_data_action.setEnabled(False)
+        self.evaluation_menu.addAction(self.save_evaluation_data_action)
 
         self.open_human_segment_image_action = QtWidgets.QAction(self.main_window)
         self.open_human_segment_image_action.setObjectName("open_human_segment")
         self.open_human_segment_image_action.setText("打开人工分割图")
-        self.open_human_segment_image_action.triggered.connect(self.open_human_segment_image_action_handel)
+        self.open_human_segment_image_action.triggered.connect(self.open_human_segment_image_action_handle)
         self.open_human_segment_image_action.setEnabled(False)
         self.evaluation_menu.addAction(self.open_human_segment_image_action)
 
         self.open_segment_image_action = QtWidgets.QAction(self.main_window)
         self.open_segment_image_action.setObjectName("open_segment")
         self.open_segment_image_action.setText("打开分割效果图")
-        self.open_segment_image_action.triggered.connect(self.open_segment_image_action_handel)
+        self.open_segment_image_action.triggered.connect(self.open_segment_image_action_handle)
         self.open_segment_image_action.setEnabled(False)
         self.evaluation_menu.addAction(self.open_segment_image_action)
 
@@ -180,20 +193,21 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         self.info_action = QtWidgets.QAction(self.main_window)
         self.info_action.setObjectName("image_info")
         self.info_action.setText("图片属性")
-        self.info_action.triggered.connect(self.info_action_handel)
+        self.info_action.triggered.connect(self.info_action_handle)
+        self.info_action.setEnabled(False)
         self.attribute_menu.addAction(self.info_action)
 
     def open_file(self) -> None:
-        src_img = self.file_control.open_file_dialog(self)
+        src_img = FileController.open_file_dialog(self)
         if src_img is not None:
             self.main_window.change_image(src_img)
-        print("openfile")
+            self.info_action.setEnabled(True)
 
     def save_photo(self) -> None:
         self.main_window.graphicsView.save_current()
 
     def save_label(self) -> None:
-        self.file_control.save_label(self)
+        FileController.save_label(self)
 
     def graying_action_handle(self) -> None:
         func_item = GrayingItem()
@@ -223,33 +237,56 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         func_item = OpenCVLSCItem()
         self.main_window.funcListWidget.add_used_function(func_item)
 
-    def open_human_segment_action_handel(self) -> None:
+    def open_human_segment_action_handle(self) -> None:
         self.main_window.evaluation.open_human_segment()
 
-    def open_algorithm_segment_action_handel(self) -> None:
+    def open_algorithm_segment_action_handle(self) -> None:
         self.main_window.evaluation.open_algorithm_segment()
 
-    def compactness_action_handel(self) -> None:
+    def compactness_action_handle(self) -> None:
         self.main_window.evaluation.calculate_compactness_handle()
 
-    def undersegmentation_error_action_handel(self) -> None:
-        self.main_window.evaluation.compute_undersegmentation_error_handel()
+    def undersegmentation_error_action_handle(self) -> None:
+        self.main_window.evaluation.compute_undersegmentation_error_handle()
 
-    def compute_boundary_recall_action_handel(self) -> None:
-        self.main_window.evaluation.compute_boundary_recall_action_handel()
+    def compute_boundary_recall_action_handle(self) -> None:
+        self.main_window.evaluation.compute_boundary_recall_action_handle()
 
-    def open_segment_image_action_handel(self) -> None:
+    def achievable_segmentation_accuracy_action_handle(self) -> None:
+        self.main_window.evaluation.compute_achievable_segmentation_accuracy_handle()
+
+    def save_evaluation_data_handle(self) -> None:
+        self.main_window.evaluation.save_evaluation_data()
+
+    def open_segment_image_action_handle(self) -> None:
         self.main_window.evaluation.open_segment_image()
 
-    def open_human_segment_image_action_handel(self) -> None:
+    def open_human_segment_image_action_handle(self) -> None:
         self.main_window.evaluation.open_human_segment_image()
 
     # image info
-    def info_action_handel(self) -> None:
+    def info_action_handle(self) -> None:
         self.main_window.attribute.get_image_info()
 
     def update(self, value) -> None:
         if value:
             self.compactness_action.setEnabled(True)
+            # self.info_action.setEnabled(True)
             if Data.have_human_label:
                 self.undersegmentation_error_action.setEnabled(True)
+                self.compute_boundary_recall_action.setEnabled(True)
+                self.achievable_segmentation_accuracy_action.setEnabled(True)
+                self.save_evaluation_data_action.setEnabled(True)
+
+    def check_menu_enable(self):
+        if Data.have_img_label:
+            self.compactness_action.setEnabled(True)
+            if Data.have_human_label:
+                self.undersegmentation_error_action.setEnabled(True)
+                self.compute_boundary_recall_action.setEnabled(True)
+                self.achievable_segmentation_accuracy_action.setEnabled(True)
+                self.save_evaluation_data_action.setEnabled(True)
+        if Data.have_segmented_img:
+            self.open_segment_image_action.setEnabled(True)
+        if Data.have_human_segmented_img:
+            self.open_human_segment_image_action.setEnabled(True)
