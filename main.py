@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QDockWidget
 from PyQt5.QtCore import Qt
 
+from src.attribute import Attribute
 from src.evaluation import Evaluation
 from src.stackedWidget import StackedWidget
 from src.menuBar import MenuBar
@@ -21,6 +22,7 @@ class MyApp(QMainWindow):
         self.stackedWidget = StackedWidget(self)
         self.graphicsView = GraphicsView(self)
         self.evaluation = Evaluation(self)
+        self.attribute = Attribute(self)
         self.menu = MenuBar(self)
         self.icons = Icons()
 

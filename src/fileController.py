@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 
 from src.listWidgetItems import MyItem
+from utils.data import Data
 
 
 class FileController:
@@ -21,20 +22,89 @@ class FileController:
                 if src_img is not None:
                     return src_img
                 else:
-                    print("Error: Failed to load image")
+                    QMessageBox.critical(parent, "Error", "Failed to load image")
             else:
-                print("Error: Unsupported file format")
+                QMessageBox.critical(parent, "Error", "Unsupported file format")
         return None
 
     @staticmethod
     def save_label(self):
-        file_path, _ = QFileDialog.getSaveFileName(self, "保存文件", "", "seg files (*.seg);;All files (*)")
+        file_path, _ = QFileDialog.getSaveFileName(self, "保存文件", "", "seg files (*.mseg);;All files (*)")
         if file_path:
             with open(file_path, 'w') as f:
-                for row in MyItem.img_label:
-                    line = ' '.join(map(str, row))  # 将每行数据转换为字符串，并用空格连接
-                    f.write("%s\n" % line)
-            print("数据已保存到文件:", file_path)
+                label = Data.img_label
+                if self.main_window.cur_img is not None:
+                    height, width = self.main_window.cur_img.shape[:2]
+                    f.write("height %d\n" % height)
+                    f.write("width %d\n" % width)
+                if len(label) != 0:
+                    self.main_window.attribute.get_image_info()
+                    f.write("segments %d\n" % self.main_window.attribute.num_superpixels)
+                    count = 0
+                    num = label[0][0]
+                    f.write("label_idx count\n")
+                    for i in range(height):
+                        for j in range(width):
+                            if label[i][j] == num:
+                                count += 1
+                            else:
+                                f.write("%d %d\n" % (num, count))
+                                count = 1
+                                num = label[i][j]
+                    if count != 0:
+                        f.write("%d %d" % (num, count))
+                else:
+                    QMessageBox.information(self, "提示", "未进行过超像素分割，保存失败！",
+                                            QMessageBox.Yes)
+            QMessageBox.information(self, "提示", "数据已保存到文件:{}".format(file_path),
+                                    QMessageBox.Yes)
+
+    @staticmethod
+    def open_seg_label_of_algorithm(parent):
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(parent, "Open File", "", "Segments Files (*.mseg)",
+                                                   options=options)
+        if file_name:
+            print("Selected file:", file_name)
+            if file_name.endswith('.mseg'):
+                return FileController.read_algorithm_segments_label_file(file_name)
+            else:
+                QMessageBox.critical(parent, "Error", "Unsupported file format")
+        return None, None, None
+
+    @staticmethod
+    def read_algorithm_segments_label_file(file_name):
+        print(file_name)
+        with open(file_name, "r") as f:
+            lines = f.readlines()
+        height = int(lines[0].split()[1])
+        width = int(lines[1].split()[1])
+        num_segments = int(lines[2].split()[1])
+
+        segmented_img = np.zeros((height, width, 3), dtype=np.uint8)
+        labels = np.zeros((height, width), dtype=np.uint16)
+
+        # 设置区域颜色
+        colors = np.random.randint(0, 255, size=(num_segments, 3), dtype=np.uint8)
+
+        # 填充图像
+        idx = 4
+        num, count = map(int, lines[idx].split())
+        idx += 1
+        for i in range(height):
+            for j in range(width):
+                if count:
+                    segmented_img[i, j] = colors[num]
+                    labels[i, j] = num
+                    count -= 1
+                else:
+                    num, count = map(int, lines[idx].split())
+                    idx += 1
+                    segmented_img[i, j] = colors[num]
+                    labels[i, j] = num
+                    count -= 1
+        return labels, num_segments, segmented_img
+
 
     @staticmethod
     def open_seg_label_of_human(parent):
@@ -44,14 +114,14 @@ class FileController:
         if file_name:
             print("Selected file:", file_name)
             if file_name.endswith('.seg'):
-                return FileController.read_segments_label_file(file_name)
+                return FileController.read_human_segments_label_file(file_name)
             else:
-                print("Error: Unsupported file format")
-        return None, None
+                QMessageBox.critical(parent, "Error", "Unsupported file format")
+        return None, None, None
 
 
     @staticmethod
-    def read_segments_label_file(file_name):
+    def read_human_segments_label_file(file_name):
         print(file_name)
         with open(file_name, "r") as f:
             lines = f.readlines()
@@ -70,9 +140,20 @@ class FileController:
                 i += 1
                 break
             i += 1
-        segment_label = [[0 for i in range(width)] for i in range(height)]
-        for line in lines[i:]:
+
+        segmented_img = np.zeros((height, width, 3), dtype=np.uint8)
+        true_labels = np.zeros((height, width), dtype=np.uint16)
+
+        # 设置区域颜色
+        colors = np.random.randint(0, 255, size=(num_segments, 3), dtype=np.uint8)
+
+        # 填充图像
+        for line in lines[11:]:
             s, y, x1, x2 = map(int, line.split())
-            for j in range(x1, x2 + 1):
-                segment_label[y][j] = s
-        return segment_label, num_segments
+            segmented_img[y, x1: x2] = colors[s]
+            true_labels[y, x1: x2] = s
+        return true_labels, num_segments, segmented_img
+
+
+
+

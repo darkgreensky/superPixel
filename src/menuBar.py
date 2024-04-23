@@ -3,15 +3,19 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from src.fileController import FileController
 from src.listWidgetItems import GrayingItem, EdgeItem, GammaItem, SkimageSLICItem, OpenCVSLICItem, OpenCVSEEDSItem, \
     OpenCVLSCItem
+from utils.data import Data
 from utils.icons import Icons
+from utils.observer import Observer
 
 
-class MenuBar(QtWidgets.QMenuBar):
+class MenuBar(Observer, QtWidgets.QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.main_window = parent
         self.file_control = FileController(self)
         self.icons = Icons()
+
+        Data.add_observer(self)
 
         # 文件
         self.file_menu = QtWidgets.QMenu(self)
@@ -120,11 +124,64 @@ class MenuBar(QtWidgets.QMenuBar):
         self.evaluation_menu.setTitle("效果评估")
         self.addAction(self.evaluation_menu.menuAction())
 
+        self.open_human_segment_action = QtWidgets.QAction(self.main_window)
+        self.open_human_segment_action.setObjectName("open_human_segment")
+        self.open_human_segment_action.setText("打开人工分割数据")
+        self.open_human_segment_action.triggered.connect(self.open_human_segment_action_handel)
+        self.evaluation_menu.addAction(self.open_human_segment_action)
+
+        self.open_algorithm_segment_action = QtWidgets.QAction(self.main_window)
+        self.open_algorithm_segment_action.setObjectName("open_algorithm_segment")
+        self.open_algorithm_segment_action.setText("打开分割数据")
+        self.open_algorithm_segment_action.triggered.connect(self.open_algorithm_segment_action_handel)
+        self.evaluation_menu.addAction(self.open_algorithm_segment_action)
+
         self.compactness_action = QtWidgets.QAction(self.main_window)
         self.compactness_action.setObjectName("compactness")
-        self.compactness_action.setText("紧密性")
+        self.compactness_action.setText("紧凑度")
         self.compactness_action.triggered.connect(self.compactness_action_handel)
+        self.compactness_action.setEnabled(False)
         self.evaluation_menu.addAction(self.compactness_action)
+
+        self.undersegmentation_error_action = QtWidgets.QAction(self.main_window)
+        self.undersegmentation_error_action.setObjectName("undersegmentation_error")
+        self.undersegmentation_error_action.setText("欠分割误差")
+        self.undersegmentation_error_action.triggered.connect(self.undersegmentation_error_action_handel)
+        self.undersegmentation_error_action.setEnabled(False)
+        self.evaluation_menu.addAction(self.undersegmentation_error_action)
+
+        self.compute_boundary_recall_action = QtWidgets.QAction(self.main_window)
+        self.compute_boundary_recall_action.setObjectName("boundary_recall")
+        self.compute_boundary_recall_action.setText("边缘召回率")
+        self.compute_boundary_recall_action.triggered.connect(self.compute_boundary_recall_action_handel)
+        self.compute_boundary_recall_action.setEnabled(False)
+        self.evaluation_menu.addAction(self.compute_boundary_recall_action)
+
+        self.open_human_segment_image_action = QtWidgets.QAction(self.main_window)
+        self.open_human_segment_image_action.setObjectName("open_human_segment")
+        self.open_human_segment_image_action.setText("打开人工分割图")
+        self.open_human_segment_image_action.triggered.connect(self.open_human_segment_image_action_handel)
+        self.open_human_segment_image_action.setEnabled(False)
+        self.evaluation_menu.addAction(self.open_human_segment_image_action)
+
+        self.open_segment_image_action = QtWidgets.QAction(self.main_window)
+        self.open_segment_image_action.setObjectName("open_segment")
+        self.open_segment_image_action.setText("打开分割效果图")
+        self.open_segment_image_action.triggered.connect(self.open_segment_image_action_handel)
+        self.open_segment_image_action.setEnabled(False)
+        self.evaluation_menu.addAction(self.open_segment_image_action)
+
+        # 属性信息
+        self.attribute_menu = QtWidgets.QMenu(self)
+        self.attribute_menu.setObjectName("attribute_menu")
+        self.attribute_menu.setTitle("属性")
+        self.addAction(self.attribute_menu.menuAction())
+
+        self.info_action = QtWidgets.QAction(self.main_window)
+        self.info_action.setObjectName("image_info")
+        self.info_action.setText("图片属性")
+        self.info_action.triggered.connect(self.info_action_handel)
+        self.attribute_menu.addAction(self.info_action)
 
     def open_file(self) -> None:
         src_img = self.file_control.open_file_dialog(self)
@@ -166,6 +223,33 @@ class MenuBar(QtWidgets.QMenuBar):
         func_item = OpenCVLSCItem()
         self.main_window.funcListWidget.add_used_function(func_item)
 
+    def open_human_segment_action_handel(self) -> None:
+        self.main_window.evaluation.open_human_segment()
+
+    def open_algorithm_segment_action_handel(self) -> None:
+        self.main_window.evaluation.open_algorithm_segment()
+
     def compactness_action_handel(self) -> None:
-        self.main_window.evaluation.actions()
-        # self.main_window.evaluation.show()
+        self.main_window.evaluation.calculate_compactness_handle()
+
+    def undersegmentation_error_action_handel(self) -> None:
+        self.main_window.evaluation.compute_undersegmentation_error_handel()
+
+    def compute_boundary_recall_action_handel(self) -> None:
+        self.main_window.evaluation.compute_boundary_recall_action_handel()
+
+    def open_segment_image_action_handel(self) -> None:
+        self.main_window.evaluation.open_segment_image()
+
+    def open_human_segment_image_action_handel(self) -> None:
+        self.main_window.evaluation.open_human_segment_image()
+
+    # image info
+    def info_action_handel(self) -> None:
+        self.main_window.attribute.get_image_info()
+
+    def update(self, value) -> None:
+        if value:
+            self.compactness_action.setEnabled(True)
+            if Data.have_human_label:
+                self.undersegmentation_error_action.setEnabled(True)

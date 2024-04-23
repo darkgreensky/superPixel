@@ -7,10 +7,10 @@ from PyQt5.QtWidgets import QListWidgetItem
 from skimage.segmentation import slic
 from skimage.segmentation import mark_boundaries
 
+from utils.data import Data
+
 
 class MyItem(QListWidgetItem):
-    img_label = []
-
     def __init__(self, name=None, parent=None):
         super(MyItem, self).__init__(name, parent=parent)
         self.setIcon(QIcon('icons/color.png'))
@@ -28,9 +28,14 @@ class MyItem(QListWidgetItem):
             if '_' + k in dir(self):
                 self.__setattr__('_' + k, v)
 
+
     @staticmethod
     def change_img_label(img_label):
-        MyItem.img_label = img_label
+        Data.set_have_img_label_handle(True)
+        Data.img_label = img_label
+
+        unique_labels, counts = np.unique(img_label, return_counts=True)
+        Data.num_superpixels = len(unique_labels)
 
     @staticmethod
     def color_segments(img, segments):
@@ -128,6 +133,7 @@ class OpenCVSLICItem(MyItem):
     def __init__(self, parent=None):
         super(OpenCVSLICItem, self).__init__(' OpenCV-SLIC ', parent=parent)
         self._algorithm = 0
+        self._num_superpixels = 2000
         self._region_size = 20
         self._ruler = 20
         self._iterate_times = 10  # 迭代次数
@@ -197,7 +203,7 @@ class OpenCVSEEDSItem(MyItem):
 class OpenCVLSCItem(MyItem):
     def __init__(self, parent=None):
         super(OpenCVLSCItem, self).__init__(' OpenCV-LSC ', parent=parent)
-        self._region_size = 20
+        self._region_size = 10
         self._ratio = 75
         self._iterate_times = 10
         self._edge = False
