@@ -28,7 +28,6 @@ class MyItem(QListWidgetItem):
             if '_' + k in dir(self):
                 self.__setattr__('_' + k, v)
 
-
     @staticmethod
     def change_img_label(img_label):
         Data.set_have_img_label_handle(True)
@@ -152,7 +151,6 @@ class OpenCVSLICItem(MyItem):
         slic.iterate(self._iterate_times)
         label_slic = slic.getLabels()  # 获取超像素标签
         self.change_img_label(label_slic)
-        # self.main_window.img_label = label_slic
         result_img = img
         if self._color_fill:
             result_img = self.color_segments(img, label_slic)
@@ -162,7 +160,7 @@ class OpenCVSLICItem(MyItem):
             # print(mask_slic)
             mask_inv_slic = cv2.bitwise_not(mask_slic)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_slic)  # 在原图上绘制超像素边界
-
+        Data.use_algorithm = self.alg[self._algorithm][0]
         return result_img
 
 
@@ -196,7 +194,7 @@ class OpenCVSEEDSItem(MyItem):
             mask_seeds = seeds.getLabelContourMask()
             mask_inv_seeds = cv2.bitwise_not(mask_seeds)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_seeds)
-
+        Data.use_algorithm = 'SEEDS'
         return result_img
 
 
@@ -224,5 +222,5 @@ class OpenCVLSCItem(MyItem):
             mask_lsc = lsc.getLabelContourMask()
             mask_inv_lsc = cv2.bitwise_not(mask_lsc)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_lsc)
-
+        Data.use_algorithm = 'LSC'
         return result_img

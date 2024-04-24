@@ -11,13 +11,10 @@ class Attribute(QMainWindow):
         super().__init__(parent)
         self.main_window = parent
 
-        self.height = 0
-        self.width = 0
-        self.num_superpixels = 0
-
         self.width_label = QLabel()
         self.height_label = QLabel()
         self.num_superpixels_label = QLabel()
+        self.algorithm_label = QLabel()
 
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
@@ -29,27 +26,24 @@ class Attribute(QMainWindow):
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowMinimizeButtonHint)
         self.setWindowTitle('属性')
         self.setFixedWidth(200)
-        self.setFixedHeight(120)
+        self.setFixedHeight(150)
 
-    def get_image_info(self):
-        label = Data.img_label
+    def show_image_info(self):
         have_img_label = Data.have_img_label
-        src_img = self.main_window.src_img
-        have_image = True
-        if src_img is None:
-            have_image = False
-        if have_image:
-            self.height, self.width = src_img.shape[:2]
-            self.width_label.setText("图片宽度: {}".format(self.width))
-            self.height_label.setText("图片高度: {}".format(self.height))
-        if have_img_label:
-            unique_labels, counts = np.unique(label, return_counts=True)
-            self.num_superpixels = len(unique_labels)
-            self.num_superpixels_label.setText("超像素个数: {}".format(self.num_superpixels))
+        self.width_label.setText("图片宽度: {}".format(Data.width))
+        self.height_label.setText("图片高度: {}".format(Data.height))
+        if have_img_label and Data.use_algorithm != '':
+            self.algorithm_label.setText("分割算法: {}".format(Data.use_algorithm))
+            Attribute.update_num_superpixels()
+            self.num_superpixels_label.setText("超像素个数: {}".format(Data.num_superpixels))
+        else:
+            self.algorithm_label.setText("")
+            self.num_superpixels_label.setText("")
 
         self.layout.addWidget(self.width_label, 0, 0)
         self.layout.addWidget(self.height_label, 1, 0)
-        self.layout.addWidget(self.num_superpixels_label, 2, 0)
+        self.layout.addWidget(self.algorithm_label, 2, 0)
+        self.layout.addWidget(self.num_superpixels_label, 3, 0)
 
         def set_labels_properties(labels):
             for lab in labels:
@@ -57,6 +51,12 @@ class Attribute(QMainWindow):
                 lab.setTextInteractionFlags(Qt.TextSelectableByMouse)
                 lab.setCursor(Qt.IBeamCursor)
 
-        set_labels_properties([self.width_label, self.height_label, self.num_superpixels_label])
-
+        set_labels_properties([self.width_label, self.height_label, self.num_superpixels_label, self.algorithm_label])
         self.main_window.attribute.show()
+
+    @staticmethod
+    def update_num_superpixels():
+        if Data.use_algorithm != '':
+            label = Data.img_label
+            unique_labels, counts = np.unique(label, return_counts=True)
+            Data.num_superpixels = len(unique_labels)

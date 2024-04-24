@@ -150,10 +150,17 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
 
         self.compute_boundary_recall_action = QtWidgets.QAction(self.main_window)
         self.compute_boundary_recall_action.setObjectName("boundary_recall")
-        self.compute_boundary_recall_action.setText("边缘召回率")
+        self.compute_boundary_recall_action.setText("边界召回率")
         self.compute_boundary_recall_action.triggered.connect(self.compute_boundary_recall_action_handle)
         self.compute_boundary_recall_action.setEnabled(False)
         self.evaluation_menu.addAction(self.compute_boundary_recall_action)
+
+        self.compute_boundary_precision_action = QtWidgets.QAction(self.main_window)
+        self.compute_boundary_precision_action.setObjectName("boundary_precision")
+        self.compute_boundary_precision_action.setText("边界精度")
+        self.compute_boundary_precision_action.triggered.connect(self.compute_boundary_precision_handle)
+        self.compute_boundary_precision_action.setEnabled(False)
+        self.evaluation_menu.addAction(self.compute_boundary_precision_action)
 
         self.achievable_segmentation_accuracy_action = QtWidgets.QAction(self.main_window)
         self.achievable_segmentation_accuracy_action.setObjectName("achievable_segmentation_accuracy")
@@ -252,6 +259,9 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
     def compute_boundary_recall_action_handle(self) -> None:
         self.main_window.evaluation.compute_boundary_recall_action_handle()
 
+    def compute_boundary_precision_handle(self) -> None:
+        self.main_window.evaluation.compute_boundary_precision_handle()
+
     def achievable_segmentation_accuracy_action_handle(self) -> None:
         self.main_window.evaluation.compute_achievable_segmentation_accuracy_handle()
 
@@ -266,26 +276,22 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
 
     # image info
     def info_action_handle(self) -> None:
-        self.main_window.attribute.get_image_info()
+        self.main_window.attribute.show_image_info()
 
     def update(self, value) -> None:
         if value:
             self.compactness_action.setEnabled(True)
-            # self.info_action.setEnabled(True)
+            self.info_action.setEnabled(True)
             if Data.have_human_label:
                 self.undersegmentation_error_action.setEnabled(True)
                 self.compute_boundary_recall_action.setEnabled(True)
+                self.compute_boundary_precision_action.setEnabled(True)
                 self.achievable_segmentation_accuracy_action.setEnabled(True)
                 self.save_evaluation_data_action.setEnabled(True)
 
     def check_menu_enable(self):
         if Data.have_img_label:
-            self.compactness_action.setEnabled(True)
-            if Data.have_human_label:
-                self.undersegmentation_error_action.setEnabled(True)
-                self.compute_boundary_recall_action.setEnabled(True)
-                self.achievable_segmentation_accuracy_action.setEnabled(True)
-                self.save_evaluation_data_action.setEnabled(True)
+            self.update(True)
         if Data.have_segmented_img:
             self.open_segment_image_action.setEnabled(True)
         if Data.have_human_segmented_img:

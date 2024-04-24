@@ -14,18 +14,17 @@ class Evaluation(QDialog):
     def open_human_segment(self):
         true_label, num_segments, segmented_img = FileController.open_seg_label_of_human(self)
         if true_label is None:
-            print("close")
             return
         Data.update_human_img_info(true_label, num_segments, True, segmented_img)
         self.main_window.menu.check_menu_enable()
         cv2.imshow("Human Segment Image", segmented_img)
 
     def open_algorithm_segment(self):
-        true_label, num_segments, segmented_img = FileController.open_seg_label_of_algorithm(self)
-        if true_label is None:
-            print("close")
+        label, num_segments, segmented_img, \
+            height, width, use_algorithm = FileController.open_seg_label_of_algorithm(self)
+        if label is None:
             return
-        Data.update_img_info(true_label, num_segments, True, segmented_img)
+        Data.update_img_info(label, num_segments, 1, True, segmented_img, height, width, use_algorithm)
         self.main_window.menu.check_menu_enable()
         cv2.imshow("Segment Image", segmented_img)
 
@@ -56,7 +55,7 @@ class Evaluation(QDialog):
     def compute_undersegmentation_error_handle(self, message=True):
         if Data.have_img_label and Data.have_human_label:
             res = self.compute_undersegmentation_error(Data.img_label, Data.human_label)
-            if message:
+            if message and res is not None:
                 self.main_window.messageBox.get_message("欠分割误差: {:.6f}".format(res), "欠分割误差")
             return res
         else:
@@ -124,13 +123,13 @@ class Evaluation(QDialog):
         return error / N
 
     # ------------------------------------------------------------------------------------------------------------------
-    #       boundary_recall 边缘召回率
+    #       boundary_recall 边界召回率
     # ------------------------------------------------------------------------------------------------------------------
 
     def compute_boundary_recall_action_handle(self, message=True):
         res = self.compute_boundary_recall(Data.img_label, Data.human_label, 0.0025)
-        if message:
-            self.main_window.messageBox.get_message("边缘召回率: {:.6f}".format(res), "边缘召回率")
+        if message and res is not None:
+            self.main_window.messageBox.get_message("边界召回率: {:.6f}".format(res), "边界召回率")
         return res
 
     def compute_boundary_recall(self, labels, gt, d: float):
@@ -164,6 +163,56 @@ class Evaluation(QDialog):
             return tp / (tp + fn)
         return 0
 
+    # ------------------------------------------------------------------------------------------------------------------
+    #       boundary_precision 边界精度
+    # ------------------------------------------------------------------------------------------------------------------
+
+    def compute_boundary_precision_handle(self, message=True):
+        res = self.compute_boundary_precision(Data.img_label, Data.human_label, 0.0025)
+        if message and res is not None:
+            self.main_window.messageBox.get_message("边界精度: {:.6f}".format(res), "边界精度")
+        return res
+
+    def compute_boundary_precision(self, labels, gt, d):
+        if labels.shape != gt.shape:
+            QMessageBox.critical(self, "错误", "Superpixel segmentation does not match ground truth size.",
+                                 QMessageBox.Yes)
+            return None
+        H, W = gt.shape
+        r = round(d * np.sqrt(H * H + W * W))
+
+        tp = 0
+        fp = 0
+
+        for i in range(H):
+            for j in range(W):
+                if self.is_4_connected_boundary_pixel(gt, i, j):
+
+                    pos = False
+                    # Search for boundary pixel in the supervoxel segmentation.
+                    for k in range(max(0, i - r), min(H - 1, i + r) + 1):
+                        for l in range(max(0, j - r), min(W - 1, j + r) + 1):
+                            if self.is_4_connected_boundary_pixel(labels, k, l):
+                                pos = True
+
+                    if pos:
+                        tp += 1
+                elif self.is_4_connected_boundary_pixel(labels, i, j):
+                    pos = False
+                    # Search for boundary pixel in the supervoxel segmentation.
+                    for k in range(max(0, i - r), min(H - 1, i + r) + 1):
+                        for l in range(max(0, j - r), min(W - 1, j + r) + 1):
+                            if self.is_4_connected_boundary_pixel(gt, k, l):
+                                pos = True
+
+                    if not pos:
+                        fp += 1
+
+        if tp + fp > 0:
+            return tp / (tp + fp)
+
+        return 0
+
     def is_4_connected_boundary_pixel(self, labels, i, j):
         if i > 0:
             if labels[i, j] != labels[i - 1, j]:
@@ -189,7 +238,7 @@ class Evaluation(QDialog):
 
     def compute_achievable_segmentation_accuracy_handle(self, message=True):
         res = self.compute_achievable_segmentation_accuracy(Data.img_label, Data.human_label)
-        if message:
+        if message and res is not None:
             self.main_window.messageBox.get_message("可达分割精度: {:.6f}".format(res), "可达分割精度")
         return res
 
@@ -215,11 +264,18 @@ class Evaluation(QDialog):
     #
     # ------------------------------------------------------------------------------------------------------------------
     def save_evaluation_data(self):
-        co = self.calculate_compactness_handle(False)
-        ue = self.compute_undersegmentation_error_handle(False)
-        rec = self.compute_boundary_recall_action_handle(False)
-        asa = self.compute_achievable_segmentation_accuracy_handle(False)
-        FileController.save_evaluation_data(self, co, ue, rec, asa)
+        if Data.img_label.shape != Data.human_label.shape:
+            QMessageBox.critical(self, "错误", "Superpixel segmentation does not match ground truth size.",
+                                 QMessageBox.Yes)
+            return None
+        file_path, _ = FileController.save_file_dialog(self)
+        if file_path:
+            co = self.calculate_compactness_handle(False)
+            ue = self.compute_undersegmentation_error_handle(False)
+            br = self.compute_boundary_recall_action_handle(False)
+            bp = self.compute_boundary_precision_handle(False)
+            asa = self.compute_achievable_segmentation_accuracy_handle(False)
+            FileController.save_evaluation_data(self, file_path, co, ue, br, bp, asa)
 
     def open_human_segment_image(self):
         if Data.have_human_segmented_img:
