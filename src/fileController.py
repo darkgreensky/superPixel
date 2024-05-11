@@ -18,7 +18,6 @@ class FileController:
         file_name, _ = QFileDialog.getOpenFileName(parent, "Open File", "", "All Files (*);;Text Files (*.txt)",
                                                    options=options)
         if file_name:
-            print("Selected file:", file_name)
             if file_name.endswith(('.jpg', '.png', '.bmp', '.jpeg')):
                 src_img = cv2.imdecode(np.fromfile(file_name, dtype=np.uint8), -1)
                 if src_img is not None:
@@ -84,7 +83,6 @@ class FileController:
         file_name, _ = QFileDialog.getOpenFileName(parent, "Open File", "", "Segments Files (*.mseg)",
                                                    options=options)
         if file_name:
-            print("Selected file:", file_name)
             if file_name.endswith('.mseg'):
                 return FileController.read_algorithm_segments_label_file(file_name)
             else:
@@ -93,7 +91,6 @@ class FileController:
 
     @staticmethod
     def read_algorithm_segments_label_file(file_name):
-        print(file_name)
         with open(file_name, "r") as f:
             lines = f.readlines()
         height = int(lines[1].split()[1])
@@ -131,7 +128,6 @@ class FileController:
         file_name, _ = QFileDialog.getOpenFileName(parent, "Open File", "", "Segments Files (*.seg)",
                                                    options=options)
         if file_name:
-            print("Selected file:", file_name)
             if file_name.endswith('.seg'):
                 return FileController.read_human_segments_label_file(file_name)
             else:
@@ -140,7 +136,6 @@ class FileController:
 
     @staticmethod
     def read_human_segments_label_file(file_name):
-        print(file_name)
         with open(file_name, "r") as f:
             lines = f.readlines()
         width = 0
@@ -175,33 +170,26 @@ class FileController:
     @staticmethod
     def save_evaluation_data(parent, file_path, co, ue, br, bp, asa):
         if file_path:
+            datasets = list()
+            datasets.append(("图片宽度", Data.width))
+            datasets.append(("图片高度", Data.height))
+            datasets.append(("超像素数目", Data.num_superpixels))
+            datasets.append(("分割算法", Data.use_algorithm))
+            datasets.append(("紧凑度", float("{:.6f}".format(co))))
+            datasets.append(("欠分割误差", float("{:.6f}".format(ue))))
+            datasets.append(("边界召回率", float("{:.6f}".format(br))))
+            datasets.append(("边界精度", float("{:.6f}".format(bp))))
+            datasets.append(("可达分割精度", float("{:.6f}".format(asa))))
             workbook = openpyxl.Workbook()
             sheet = workbook.active
-            sheet["A1"] = "超像素数目"
-            sheet["B1"] = Data.num_superpixels
-            sheet["A2"] = "分割算法"
-            sheet["B2"] = Data.use_algorithm
-            sheet["A3"] = "紧凑度"
-            sheet["B3"] = float("{:.6f}".format(co))
-            sheet["A4"] = "欠分割误差"
-            sheet["B4"] = float("{:.6f}".format(ue))
-            sheet["A5"] = "边界召回率"
-            sheet["B5"] = float("{:.6f}".format(br))
-            sheet["A6"] = "边界精度"
-            sheet["B6"] = float("{:.6f}".format(bp))
-            sheet["A7"] = "可达分割精度"
-            sheet["B7"] = float("{:.6f}".format(asa))
-            workbook.save(file_path)
-
-            # with open(file_path, 'w') as f:
-            #     f.write("超像素数目\t{}\n".format(Data.num_superpixels))
-            #     f.write("分割算法\t\t{}\n".format(Data.use_algorithm))
-            #     f.write("紧凑度\t\t{:.6f}\n".format(co))
-            #     f.write("欠分割误差\t{:.6f}\n".format(ue))
-            #     f.write("边界召回率\t{:.6f}\n".format(br))
-            #     f.write("边界精度\t\t{:.6f}\n".format(bp))
-            #     f.write("可达分割精度\t{:.6f}\n".format(asa))
-            QMessageBox.information(parent, "提示", "数据已保存到文件: {}".format(file_path),
+            for data in datasets:
+                sheet.append(data)
+            try:
+                workbook.save(file_path)
+                QMessageBox.information(parent, "提示", "数据已保存到文件: {}".format(file_path),
+                                        QMessageBox.Ok)
+            except Exception as e:
+                QMessageBox.warning(parent, "警告", f"保存文件时出错: {str(e)}\n请检查保存的文件是否已打开",
                                     QMessageBox.Ok)
 
     @staticmethod

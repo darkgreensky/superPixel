@@ -1,12 +1,13 @@
 import cv2
 from PyQt5.QtCore import Qt, QRectF
-from PyQt5.QtGui import QCursor, QImage, QPixmap
+from PyQt5.QtGui import QCursor, QImage, QPixmap, QColor
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsPixmapItem, QGraphicsScene, QMenu, QAction, QFileDialog
 
 
 class GraphicsView(QGraphicsView):
     def __init__(self, parent=None):
         super(GraphicsView, self).__init__(parent=parent)
+        self.setObjectName('GraphicsView')
         self._zoom = 0
         self._empty = True
         self._photo = QGraphicsPixmapItem()
@@ -30,7 +31,6 @@ class GraphicsView(QGraphicsView):
 
     def save_current(self):
         file_name = QFileDialog.getSaveFileName(self, '另存为', './', 'Image files(*.png *.gif *.jpg)')[0]
-        print(file_name)
         if file_name:
             self._photo.pixmap().save(file_name)
 

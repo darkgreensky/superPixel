@@ -32,6 +32,7 @@ class MyItem(QListWidgetItem):
     def change_img_label(img_label):
         Data.set_have_img_label_handle(True)
         Data.img_label = img_label
+        Data.img_type = 0
 
         unique_labels, counts = np.unique(img_label, return_counts=True)
         Data.num_superpixels = len(unique_labels)
@@ -157,7 +158,6 @@ class OpenCVSLICItem(MyItem):
 
         if self._edge:
             mask_slic = slic.getLabelContourMask()  # 获取Mask，超像素边缘Mask==1
-            # print(mask_slic)
             mask_inv_slic = cv2.bitwise_not(mask_slic)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_slic)  # 在原图上绘制超像素边界
         Data.use_algorithm = self.alg[self._algorithm][0]

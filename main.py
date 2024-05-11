@@ -9,6 +9,7 @@ from src.menuBar import MenuBar
 from src.graphicsView import GraphicsView
 from src.listWidgets import FuncListWidget
 from src.listWidgets import UsedListWidget
+from src.toolBar import ToolBar
 from utils.icons import Icons
 from utils.messageBox import MessageBox
 
@@ -16,6 +17,7 @@ from utils.messageBox import MessageBox
 class MyApp(QMainWindow):
     def __init__(self):
         super(MyApp, self).__init__()
+        self.setObjectName("MyApp")
 
         # 新建对象
         self.useListWidget = UsedListWidget(self)
@@ -26,17 +28,23 @@ class MyApp(QMainWindow):
         self.attribute = Attribute(self)
         self.messageBox = MessageBox(self)
         self.menu = MenuBar(self)
+        self.toolBar1 = ToolBar(self)
 
         # 已选操作
         self.dock_used = QDockWidget(self)
         self.dock_used.setWidget(self.useListWidget)
-        self.dock_used.setTitleBarWidget(QLabel('已选操作'))
+        title_label = QLabel('已选操作')
+        title_label.setObjectName('title_label')
+        self.dock_used.setTitleBarWidget(title_label)
         self.dock_used.setFeatures(QDockWidget.NoDockWidgetFeatures)
+        # self.dock_used.close()
 
         # 已选操作的属性
         self.dock_attr = QDockWidget(self)
         self.dock_attr.setWidget(self.stackedWidget)
-        self.dock_attr.setTitleBarWidget(QLabel('属性'))
+        title_label = QLabel('属性')
+        title_label.setObjectName('title_label')
+        self.dock_attr.setTitleBarWidget(title_label)
         self.dock_attr.setFeatures(QDockWidget.NoDockWidgetFeatures)
         self.dock_attr.close()
 
@@ -46,10 +54,15 @@ class MyApp(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock_attr)
         self.setMenuBar(self.menu)
 
+        self.addToolBar(self.toolBar1)
+        self.toolBar1.close()
+
         # title and icon
-        self.setWindowTitle('Opencv图像处理')
+        self.setWindowTitle('OpenCV图像超像素分割')
         icon = Icons.create_svg_icon(Icons.grape)
         self.setWindowIcon(icon)
+
+        self.resize(950, 600)
 
         self.src_img = None
         self.cur_img = None
@@ -76,6 +89,7 @@ class MyApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app.setStyleSheet(open('./utils/styleSheet.qss', encoding='utf-8').read())
     window = MyApp()
     window.show()
     sys.exit(app.exec_())

@@ -33,17 +33,17 @@ class Attribute(QMainWindow):
         self.width_label.setText("图片宽度: {}".format(Data.width))
         self.height_label.setText("图片高度: {}".format(Data.height))
         if have_img_label and Data.use_algorithm != '':
+            self.setFixedHeight(150)
             self.algorithm_label.setText("分割算法: {}".format(Data.use_algorithm))
             Attribute.update_num_superpixels()
             self.num_superpixels_label.setText("超像素个数: {}".format(Data.num_superpixels))
+            self.layout.addWidget(self.algorithm_label, 2, 0)
+            self.layout.addWidget(self.num_superpixels_label, 3, 0)
         else:
-            self.algorithm_label.setText("")
-            self.num_superpixels_label.setText("")
+            self.setFixedHeight(120)
 
         self.layout.addWidget(self.width_label, 0, 0)
         self.layout.addWidget(self.height_label, 1, 0)
-        self.layout.addWidget(self.algorithm_label, 2, 0)
-        self.layout.addWidget(self.num_superpixels_label, 3, 0)
 
         def set_labels_properties(labels):
             for lab in labels:

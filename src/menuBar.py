@@ -1,4 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QAction, QColorDialog
 
 from src.fileController import FileController
 from src.listWidgetItems import GrayingItem, EdgeItem, GammaItem, SkimageSLICItem, OpenCVSLICItem, OpenCVSEEDSItem, \
@@ -12,6 +13,7 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.main_window = parent
+        # self.setStyleSheet("QMenuBar { background-color: #F8F8F8; }")
 
         Data.add_observer(self)
 
@@ -134,41 +136,45 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         self.open_algorithm_segment_action.triggered.connect(self.open_algorithm_segment_action_handle)
         self.evaluation_menu.addAction(self.open_algorithm_segment_action)
 
+        self.evaluation_menu.addSeparator()
+
         self.compactness_action = QtWidgets.QAction(self.main_window)
         self.compactness_action.setObjectName("compactness")
-        self.compactness_action.setText("紧凑度")
+        self.compactness_action.setText("紧凑度(CO)")
         self.compactness_action.triggered.connect(self.compactness_action_handle)
         self.compactness_action.setEnabled(False)
         self.evaluation_menu.addAction(self.compactness_action)
 
         self.undersegmentation_error_action = QtWidgets.QAction(self.main_window)
         self.undersegmentation_error_action.setObjectName("undersegmentation_error")
-        self.undersegmentation_error_action.setText("欠分割误差")
+        self.undersegmentation_error_action.setText("欠分割误差(UE)")
         self.undersegmentation_error_action.triggered.connect(self.undersegmentation_error_action_handle)
         self.undersegmentation_error_action.setEnabled(False)
         self.evaluation_menu.addAction(self.undersegmentation_error_action)
 
         self.compute_boundary_recall_action = QtWidgets.QAction(self.main_window)
         self.compute_boundary_recall_action.setObjectName("boundary_recall")
-        self.compute_boundary_recall_action.setText("边界召回率")
+        self.compute_boundary_recall_action.setText("边界召回率(BR)")
         self.compute_boundary_recall_action.triggered.connect(self.compute_boundary_recall_action_handle)
         self.compute_boundary_recall_action.setEnabled(False)
         self.evaluation_menu.addAction(self.compute_boundary_recall_action)
 
         self.compute_boundary_precision_action = QtWidgets.QAction(self.main_window)
         self.compute_boundary_precision_action.setObjectName("boundary_precision")
-        self.compute_boundary_precision_action.setText("边界精度")
+        self.compute_boundary_precision_action.setText("边界精度(BP)")
         self.compute_boundary_precision_action.triggered.connect(self.compute_boundary_precision_handle)
         self.compute_boundary_precision_action.setEnabled(False)
         self.evaluation_menu.addAction(self.compute_boundary_precision_action)
 
         self.achievable_segmentation_accuracy_action = QtWidgets.QAction(self.main_window)
         self.achievable_segmentation_accuracy_action.setObjectName("achievable_segmentation_accuracy")
-        self.achievable_segmentation_accuracy_action.setText("可达分割精度")
+        self.achievable_segmentation_accuracy_action.setText("可达分割精度(ASA)")
         self.achievable_segmentation_accuracy_action.triggered.connect(
             self.achievable_segmentation_accuracy_action_handle)
         self.achievable_segmentation_accuracy_action.setEnabled(False)
         self.evaluation_menu.addAction(self.achievable_segmentation_accuracy_action)
+
+        self.evaluation_menu.addSeparator()
 
         self.save_evaluation_data_action = QtWidgets.QAction(self.main_window)
         self.save_evaluation_data_action.setObjectName("save_evaluation_data")
@@ -190,6 +196,45 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         self.open_segment_image_action.triggered.connect(self.open_segment_image_action_handle)
         self.open_segment_image_action.setEnabled(False)
         self.evaluation_menu.addAction(self.open_segment_image_action)
+
+        # 设置
+        self.settings_menu = QtWidgets.QMenu(self)
+        self.settings_menu.setObjectName("settings")
+        self.settings_menu.setTitle("设置")
+        self.addAction(self.settings_menu.menuAction())
+
+        ## 工具栏
+        self.tool_bar_menu = QtWidgets.QMenu(self)
+        self.tool_bar_menu.setObjectName("tool_bar")
+        self.tool_bar_menu.setTitle("工具栏")
+        self.settings_menu.addAction(self.tool_bar_menu.menuAction())
+
+        self.file_bar = QtWidgets.QAction("文件操作栏", self)
+        self.file_bar.setCheckable(True)
+        self.file_bar.triggered.connect(self.file_bar_action_handle)
+        self.tool_bar_menu.addAction(self.file_bar)
+
+        ## 视图
+        self.view_menu = QtWidgets.QMenu(self)
+        self.view_menu.setObjectName("view_menu")
+        self.view_menu.setTitle("视图")
+        self.settings_menu.addAction(self.view_menu.menuAction())
+
+        self.dock_view = QtWidgets.QAction("已选操作", self)
+        self.dock_view.setCheckable(True)
+        self.dock_view.setChecked(True)
+        self.dock_view.triggered.connect(self.dock_view_action_handle)
+        self.view_menu.addAction(self.dock_view)
+
+        ## 外观
+        self.skin_menu = QtWidgets.QMenu(self)
+        self.skin_menu.setObjectName("skin_menu")
+        self.skin_menu.setTitle("外观")
+        self.settings_menu.addAction(self.skin_menu.menuAction())
+
+        self.canvas_color = QtWidgets.QAction("画布背景颜色", self)
+        self.canvas_color.triggered.connect(self.canvas_color_action_handle)
+        self.skin_menu.addAction(self.canvas_color)
 
         # 属性信息
         self.attribute_menu = QtWidgets.QMenu(self)
@@ -273,6 +318,32 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
 
     def open_human_segment_image_action_handle(self) -> None:
         self.main_window.evaluation.open_human_segment_image()
+
+    # tool_bar
+    def file_bar_action_handle(self, checked) -> None:
+        sender = self.sender()
+        if isinstance(sender, QAction):
+            if checked:
+                self.main_window.toolBar1.show()
+            else:
+                self.main_window.toolBar1.close()
+
+    def dock_view_action_handle(self, checked) -> None:
+        sender = self.sender()
+        if isinstance(sender, QAction):
+            if checked:
+                self.main_window.dock_used.show()
+            else:
+                self.main_window.dock_used.close()
+                self.main_window.dock_attr.close()
+
+    def canvas_color_action_handle(self) -> None:
+        color = QColorDialog.getColor()
+        if color.isValid():
+            # hex_color = color.name()
+            self.main_window.graphicsView.setBackgroundBrush(color)
+        else:
+            print("没有选择颜色")
 
     # image info
     def info_action_handle(self) -> None:

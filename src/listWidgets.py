@@ -45,6 +45,9 @@ class UsedListWidget(MyListWidget):
         self.main_window.dock_attr.close()
 
     def dropEvent(self, event):
+        if self.count() <= 1:
+            return
+        # have bug
         super().dropEvent(event)
         self.main_window.update_image()
 
@@ -52,17 +55,22 @@ class UsedListWidget(MyListWidget):
         item = self.itemAt(self.mapFromGlobal(QCursor.pos()))
         if not item:
             return
-        param = item.get_params()  # 获取当前item的属性
-        if type(item) in items:
-            index = items.index(type(item))  # 获取item对应的table索引
-            self.main_window.stackedWidget.setCurrentIndex(index)
-            self.main_window.stackedWidget.currentWidget().update_params(param)  # 更新对应的table
-            self.main_window.dock_attr.show()
+        try:
+            param = item.get_params()  # 获取当前item的属性
+            if type(item) in items:
+                index = items.index(type(item))  # 获取item对应的table索引
+                self.main_window.stackedWidget.setCurrentIndex(index)
+                self.main_window.stackedWidget.currentWidget().update_params(param)  # 更新对应的table
+                self.main_window.dock_attr.show()
+        except Exception as e:
+            print(e)
+
 
 
 class FuncListWidget(MyListWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+        self.close()
 
     def add_used_function(self, func_item):
         # func_item = self.currentItem()

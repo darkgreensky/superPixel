@@ -140,12 +140,10 @@ class Evaluation(QDialog):
 
         H, W = gt.shape
         r = int(round(d * np.sqrt(H * H + W * W)))
-        # print("r", r)
         tp = 0
         fn = 0
 
         for i in range(H):
-            # print(i, H)
             for j in range(W):
                 if self.is_4_connected_boundary_pixel(gt, i, j):
                     pos = False
@@ -157,7 +155,6 @@ class Evaluation(QDialog):
                         tp += 1
                     else:
                         fn += 1
-                    # print("tp fn:", tp, fn)
 
         if tp + fn > 0:
             return tp / (tp + fn)
@@ -270,11 +267,13 @@ class Evaluation(QDialog):
             return None
         file_path, _ = FileController.save_file_dialog(self)
         if file_path:
+            self.main_window.setWindowTitle('OpenCV图像超像素分割(数据计算中)')
             co = self.calculate_compactness_handle(False)
             ue = self.compute_undersegmentation_error_handle(False)
             br = self.compute_boundary_recall_action_handle(False)
             bp = self.compute_boundary_precision_handle(False)
             asa = self.compute_achievable_segmentation_accuracy_handle(False)
+            self.main_window.setWindowTitle('OpenCV图像超像素分割')
             FileController.save_evaluation_data(self, file_path, co, ue, br, bp, asa)
 
     def open_human_segment_image(self):
