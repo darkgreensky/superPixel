@@ -175,6 +175,7 @@ class FileController:
             datasets.append(("图片高度", Data.height))
             datasets.append(("超像素数目", Data.num_superpixels))
             datasets.append(("分割算法", Data.use_algorithm))
+            datasets.append(("运算时间", float("{:.6f}".format(Data.running_time))))
             datasets.append(("紧凑度", float("{:.6f}".format(co))))
             datasets.append(("欠分割误差", float("{:.6f}".format(ue))))
             datasets.append(("边界召回率", float("{:.6f}".format(br))))

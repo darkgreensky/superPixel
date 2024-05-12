@@ -38,15 +38,65 @@ class Evaluation(QDialog):
             self.main_window.messageBox.get_message("紧凑度: {:.6f}".format(res), "紧凑度")
         return res
 
-    def calculate_compactness(self, segmented_labels):
-        compactness = []
-        for label in np.unique(segmented_labels):
-            mask = (segmented_labels == label)
-            contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            perimeter = cv2.arcLength(contours[0], closed=True)
-            area = np.sum(mask)
-            compactness.append(perimeter ** 2 / (4 * np.pi * area))
-        return np.mean(compactness)
+    # def calculate_compactness(self, segmented_labels):
+    #     compactness = []
+    #     for label in np.unique(segmented_labels):
+    #         mask = (segmented_labels == label)
+    #         contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    #         perimeter = cv2.arcLength(contours[0], closed=True)
+    #         area = np.sum(mask)
+    #         compactness.append(perimeter ** 2 / (4 * np.pi * area))
+    #     return np.mean(compactness)
+
+    def calculate_compactness(self, labels):
+        superpixels = np.max(labels) + 1
+
+        perimeter = np.zeros(superpixels)
+        area = np.zeros(superpixels)
+
+        for i in range(labels.shape[0]):
+            for j in range(labels.shape[1]):
+                count = 0
+
+                if i > 0:
+                    if labels[i, j] != labels[i - 1, j]:
+                        count += 1
+                else:
+                    count += 1
+
+                if i < labels.shape[0] - 1:
+                    if labels[i, j] != labels[i + 1, j]:
+                        count += 1
+                else:
+                    count += 1
+
+                if j > 0:
+                    if labels[i, j] != labels[i, j - 1]:
+                        count += 1
+                else:
+                    count += 1
+
+                if j < labels.shape[1] - 1:
+                    if labels[i, j] != labels[i, j + 1]:
+                        count += 1
+                else:
+                    count += 1
+
+                perimeter[labels[i, j]] += count
+                area[labels[i, j]] += 1
+
+        compactness = 0
+
+        for i in range(superpixels):
+            if perimeter[i] > 0:
+                compactness += area[i] * (4 * np.pi * area[i]) / (perimeter[i] * perimeter[i])
+
+        compactness /= labels.size
+
+        if compactness > 1.0:
+            print("Invalid compactness:", compactness)
+
+        return compactness
 
     # ------------------------------------------------------------------------------------------------------------------
     #       undersegmentation_error  欠分割误差

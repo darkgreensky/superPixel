@@ -12,6 +12,7 @@ class Data:
     0 表示图片信息是打开图片计算的
     1 表示图片信息是打开的数据文件
     """
+    running_time = 0
 
     human_label = []
     have_human_label = False

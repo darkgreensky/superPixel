@@ -15,18 +15,19 @@ class Attribute(QMainWindow):
         self.height_label = QLabel()
         self.num_superpixels_label = QLabel()
         self.algorithm_label = QLabel()
+        self.running_time_label = QLabel()
 
         self.centralWidget = QWidget()
         self.setCentralWidget(self.centralWidget)
 
         self.layout = QGridLayout(self.centralWidget)
         self.layout.setVerticalSpacing(1)  # 设置垂直间距
-        self.layout.setContentsMargins(10, 30, 10, 30)
+        self.layout.setContentsMargins(10, 20, 10, 20)
 
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowMinimizeButtonHint)
         self.setWindowTitle('属性')
-        self.setFixedWidth(200)
-        self.setFixedHeight(150)
+        self.setFixedWidth(240)
+        self.setFixedHeight(160)
 
     def show_image_info(self):
         have_img_label = Data.have_img_label
@@ -37,8 +38,10 @@ class Attribute(QMainWindow):
             self.algorithm_label.setText("分割算法: {}".format(Data.use_algorithm))
             Attribute.update_num_superpixels()
             self.num_superpixels_label.setText("超像素个数: {}".format(Data.num_superpixels))
+            self.running_time_label.setText("算法执行时间: {:.3f}秒".format(Data.running_time))
             self.layout.addWidget(self.algorithm_label, 2, 0)
             self.layout.addWidget(self.num_superpixels_label, 3, 0)
+            self.layout.addWidget(self.running_time_label, 4, 0)
         else:
             self.setFixedHeight(120)
 
@@ -51,7 +54,7 @@ class Attribute(QMainWindow):
                 lab.setTextInteractionFlags(Qt.TextSelectableByMouse)
                 lab.setCursor(Qt.IBeamCursor)
 
-        set_labels_properties([self.width_label, self.height_label, self.num_superpixels_label, self.algorithm_label])
+        set_labels_properties([self.width_label, self.height_label, self.num_superpixels_label, self.algorithm_label, self.running_time_label])
         self.main_window.attribute.show()
 
     @staticmethod

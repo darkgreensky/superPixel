@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 import cv2
 from PyQt5.QtCore import QSize
@@ -149,7 +151,9 @@ class OpenCVSLICItem(MyItem):
             return img
         slic = cv2.ximgproc.createSuperpixelSLIC(img, algorithm=self.alg[self._algorithm][1],
                                                  region_size=self._region_size, ruler=self._ruler)
+        start_time = time.time()
         slic.iterate(self._iterate_times)
+        end_time = time.time()
         label_slic = slic.getLabels()  # 获取超像素标签
         self.change_img_label(label_slic)
         result_img = img
@@ -161,6 +165,7 @@ class OpenCVSLICItem(MyItem):
             mask_inv_slic = cv2.bitwise_not(mask_slic)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_slic)  # 在原图上绘制超像素边界
         Data.use_algorithm = self.alg[self._algorithm][0]
+        Data.running_time = end_time - start_time
         return result_img
 
 
@@ -183,7 +188,9 @@ class OpenCVSEEDSItem(MyItem):
         seeds = cv2.ximgproc.createSuperpixelSEEDS(img.shape[1], img.shape[0], img.shape[2], self._num_superpixels,
                                                    self._num_levels,
                                                    self._prior, self._histogram_bins, self._double_step)
+        start_time = time.time()
         seeds.iterate(img, self._iterate_times)  # 输入图像大小必须与初始化形状相同，迭代次数为10
+        end_time = time.time()
         label_seeds = seeds.getLabels()
         self.change_img_label(label_seeds)
         result_img = img
@@ -195,6 +202,7 @@ class OpenCVSEEDSItem(MyItem):
             mask_inv_seeds = cv2.bitwise_not(mask_seeds)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_seeds)
         Data.use_algorithm = 'SEEDS'
+        Data.running_time = end_time - start_time
         return result_img
 
 
@@ -211,7 +219,9 @@ class OpenCVLSCItem(MyItem):
         if not (self._color_fill or self._edge):
             return img
         lsc = cv2.ximgproc.createSuperpixelLSC(img, self._region_size, self._ratio / 1000.0)
+        start_time = time.time()
         lsc.iterate(self._iterate_times)
+        end_time = time.time()
         label_lsc = lsc.getLabels()
         self.change_img_label(label_lsc)
         result_img = img
@@ -223,4 +233,5 @@ class OpenCVLSCItem(MyItem):
             mask_inv_lsc = cv2.bitwise_not(mask_lsc)
             result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_lsc)
         Data.use_algorithm = 'LSC'
+        Data.running_time = end_time - start_time
         return result_img
