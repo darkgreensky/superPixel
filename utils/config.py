@@ -11,6 +11,8 @@ items = [
     OpenCVSLICItem,
     OpenCVSEEDSItem,
     OpenCVLSCItem,
+    SINItem,
+    ERSItem,
 ]
 
 tables = [
@@ -21,5 +23,8 @@ tables = [
     OpenCVSLICTableWidget,
     OpenCVSEEDSTableWidget,
     OpenCVLSCTableWidget,
+    SINTableWidget,
+    ERSTableWidget,
 ]
+
 

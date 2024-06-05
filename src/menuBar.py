@@ -1,9 +1,10 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QAction, QColorDialog
 
+import src.listWidgetItems
 from src.fileController import FileController
 from src.listWidgetItems import GrayingItem, EdgeItem, GammaItem, SkimageSLICItem, OpenCVSLICItem, OpenCVSEEDSItem, \
-    OpenCVLSCItem
+    OpenCVLSCItem, SINItem, ERSItem
 from utils.data import Data
 from utils.icons import Icons
 from utils.observer import Observer
@@ -102,21 +103,37 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
 
         self.OpenCV_SLIC_action = QtWidgets.QAction(self.main_window)
         self.OpenCV_SLIC_action.setObjectName("OpenCV_SLIC")
-        self.OpenCV_SLIC_action.setText("OpenCV-SLIC")
+        self.OpenCV_SLIC_action.setText("SLIC")
         self.OpenCV_SLIC_action.triggered.connect(self.OpenCV_SLIC_action_handle)
         self.algorithm_menu.addAction(self.OpenCV_SLIC_action)
 
         self.OpenCV_SEEDS_action = QtWidgets.QAction(self.main_window)
         self.OpenCV_SEEDS_action.setObjectName("OpenCV_SEEDS")
-        self.OpenCV_SEEDS_action.setText("OpenCV-SEEDS")
+        self.OpenCV_SEEDS_action.setText("SEEDS")
         self.OpenCV_SEEDS_action.triggered.connect(self.OpenCV_SEEDS_action_handle)
         self.algorithm_menu.addAction(self.OpenCV_SEEDS_action)
 
         self.OpenCV_LSC_action = QtWidgets.QAction(self.main_window)
         self.OpenCV_LSC_action.setObjectName("OpenCV_LSC")
-        self.OpenCV_LSC_action.setText("OpenCV-LSC")
+        self.OpenCV_LSC_action.setText("LSC")
         self.OpenCV_LSC_action.triggered.connect(self.OpenCV_LSC_action_handle)
         self.algorithm_menu.addAction(self.OpenCV_LSC_action)
+
+        self.algorithm_menu.addSeparator()
+
+        self.SIN_action = QtWidgets.QAction(self.main_window)
+        self.SIN_action.setObjectName("SIN")
+        self.SIN_action.setText("SIN")
+        self.SIN_action.triggered.connect(self.SIN_action_handle)
+        self.algorithm_menu.addAction(self.SIN_action)
+
+        self.algorithm_menu.addSeparator()
+
+        self.ERS_action = QtWidgets.QAction(self.main_window)
+        self.ERS_action.setObjectName("ERS")
+        self.ERS_action.setText("ERS")
+        self.ERS_action.triggered.connect(self.ERS_action_handle)
+        self.algorithm_menu.addAction(self.ERS_action)
 
         # 效果评估
         self.evaluation_menu = QtWidgets.QMenu(self)
@@ -236,6 +253,10 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         self.canvas_color.triggered.connect(self.canvas_color_action_handle)
         self.skin_menu.addAction(self.canvas_color)
 
+        self.edge_color = QtWidgets.QAction("超像素边界颜色", self)
+        self.edge_color.triggered.connect(self.edge_color_action_handle)
+        self.skin_menu.addAction(self.edge_color)
+
         # 属性信息
         self.attribute_menu = QtWidgets.QMenu(self)
         self.attribute_menu.setObjectName("attribute_menu")
@@ -287,6 +308,14 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
 
     def OpenCV_LSC_action_handle(self) -> None:
         func_item = OpenCVLSCItem()
+        self.main_window.funcListWidget.add_used_function(func_item)
+
+    def SIN_action_handle(self) -> None:
+        func_item = SINItem()
+        self.main_window.funcListWidget.add_used_function(func_item)
+
+    def ERS_action_handle(self) -> None:
+        func_item = ERSItem()
         self.main_window.funcListWidget.add_used_function(func_item)
 
     def open_human_segment_action_handle(self) -> None:
@@ -342,6 +371,15 @@ class MenuBar(Observer, QtWidgets.QMenuBar):
         if color.isValid():
             # hex_color = color.name()
             self.main_window.graphicsView.setBackgroundBrush(color)
+            print(color)
+        else:
+            print("没有选择颜色")
+
+    def edge_color_action_handle(self) -> None:
+        color = QColorDialog.getColor()
+        if color.isValid():
+            # hex_color = color.name()
+            src.listWidgetItems.MyItem.edge_color = color
         else:
             print("没有选择颜色")
 

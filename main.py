@@ -10,8 +10,11 @@ from src.graphicsView import GraphicsView
 from src.listWidgets import FuncListWidget
 from src.listWidgets import UsedListWidget
 from src.toolBar import ToolBar
+from utils.data import Data
 from utils.icons import Icons
 from utils.messageBox import MessageBox
+
+import utils.styleSheet
 
 
 class MyApp(QMainWindow):
@@ -72,6 +75,7 @@ class MyApp(QMainWindow):
             return
         img = self.process_image()
         self.cur_img = img
+        print(Data.running_time)
         self.graphicsView.update_image(img)
 
     def change_image(self, img):
@@ -89,7 +93,8 @@ class MyApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setStyleSheet(open('./utils/styleSheet.qss', encoding='utf-8').read())
+    # app.setStyleSheet(open('./utils/styleSheet.py', encoding='utf-8').read())
+    app.setStyleSheet(utils.styleSheet.styleSheet)
     window = MyApp()
     window.show()
     sys.exit(app.exec_())

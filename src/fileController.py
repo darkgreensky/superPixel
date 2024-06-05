@@ -17,6 +17,7 @@ class FileController:
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(parent, "Open File", "", "All Files (*);;Text Files (*.txt)",
                                                    options=options)
+        print(file_name)
         if file_name:
             if file_name.endswith(('.jpg', '.png', '.bmp', '.jpeg')):
                 src_img = cv2.imdecode(np.fromfile(file_name, dtype=np.uint8), -1)

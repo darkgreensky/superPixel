@@ -3,16 +3,21 @@ import time
 import numpy as np
 import cv2
 from PyQt5.QtCore import QSize
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QColor
 from PyQt5.QtWidgets import QListWidgetItem
 
 from skimage.segmentation import slic
 from skimage.segmentation import mark_boundaries
 
+import libs.SIN.run_demo
+import libs.ERS.demoERS
 from utils.data import Data
+import utils.test
 
 
 class MyItem(QListWidgetItem):
+    edge_color = QColor(0, 0, 0)
+
     def __init__(self, name=None, parent=None):
         super(MyItem, self).__init__(name, parent=parent)
         self.setIcon(QIcon('icons/color.png'))
@@ -69,6 +74,18 @@ class MyItem(QListWidgetItem):
             if np.any(segmented_img[segments == i]):
                 segmented_img[segments == i] = colors[i]
         return segmented_img
+
+    @staticmethod
+    def draw_edge(image, labels):
+        unique_labels = np.unique(labels)
+        color = MyItem.edge_color
+        r, g, b = color.red(), color.green(), color.blue()
+        # print(r, g, b)
+        for label in unique_labels:
+            mask = np.uint8(labels == label)
+            contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            cv2.drawContours(image, contours, -1, (r, g, b), 1)
+        return image
 
 
 class GrayingItem(MyItem):
@@ -133,7 +150,7 @@ class SkimageSLICItem(MyItem):
 
 class OpenCVSLICItem(MyItem):
     def __init__(self, parent=None):
-        super(OpenCVSLICItem, self).__init__(' OpenCV-SLIC ', parent=parent)
+        super(OpenCVSLICItem, self).__init__(' SLIC ', parent=parent)
         self._algorithm = 0
         self._num_superpixels = 2000
         self._region_size = 20
@@ -161,9 +178,10 @@ class OpenCVSLICItem(MyItem):
             result_img = self.color_segments(img, label_slic)
 
         if self._edge:
-            mask_slic = slic.getLabelContourMask()  # 获取Mask，超像素边缘Mask==1
-            mask_inv_slic = cv2.bitwise_not(mask_slic)
-            result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_slic)  # 在原图上绘制超像素边界
+            result_img = MyItem.draw_edge(result_img, label_slic)
+            # mask_slic = slic.getLabelContourMask()  # 获取Mask，超像素边缘Mask==1
+            # mask_inv_slic = cv2.bitwise_not(mask_slic)
+            # result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_slic)  # 在原图上绘制超像素边界
         Data.use_algorithm = self.alg[self._algorithm][0]
         Data.running_time = end_time - start_time
         return result_img
@@ -171,7 +189,7 @@ class OpenCVSLICItem(MyItem):
 
 class OpenCVSEEDSItem(MyItem):
     def __init__(self, parent=None):
-        super(OpenCVSEEDSItem, self).__init__(' OpenCV-SEEDS ', parent=parent)
+        super(OpenCVSEEDSItem, self).__init__(' SEEDS ', parent=parent)
         self._num_superpixels = 2000  # 超像素数目
         self._num_levels = 15  # 块级别数
         self._prior = 3
@@ -198,9 +216,10 @@ class OpenCVSEEDSItem(MyItem):
             result_img = self.color_segments(img, label_seeds)
 
         if self._edge:
-            mask_seeds = seeds.getLabelContourMask()
-            mask_inv_seeds = cv2.bitwise_not(mask_seeds)
-            result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_seeds)
+            result_img = MyItem.draw_edge(result_img, label_seeds)
+            # mask_seeds = seeds.getLabelContourMask()
+            # mask_inv_seeds = cv2.bitwise_not(mask_seeds)
+            # result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_seeds)
         Data.use_algorithm = 'SEEDS'
         Data.running_time = end_time - start_time
         return result_img
@@ -208,7 +227,7 @@ class OpenCVSEEDSItem(MyItem):
 
 class OpenCVLSCItem(MyItem):
     def __init__(self, parent=None):
-        super(OpenCVLSCItem, self).__init__(' OpenCV-LSC ', parent=parent)
+        super(OpenCVLSCItem, self).__init__(' LSC ', parent=parent)
         self._region_size = 10
         self._ratio = 75
         self._iterate_times = 10
@@ -229,9 +248,67 @@ class OpenCVLSCItem(MyItem):
             result_img = self.color_segments(img, label_lsc)
 
         if self._edge:
-            mask_lsc = lsc.getLabelContourMask()
-            mask_inv_lsc = cv2.bitwise_not(mask_lsc)
-            result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_lsc)
+            result_img = MyItem.draw_edge(result_img, label_lsc)
+            # mask_lsc = lsc.getLabelContourMask()
+            # mask_inv_lsc = cv2.bitwise_not(mask_lsc)
+            # result_img = cv2.bitwise_and(result_img, result_img, mask=mask_inv_lsc)
         Data.use_algorithm = 'LSC'
         Data.running_time = end_time - start_time
+        return result_img
+
+
+class SINItem(MyItem):
+    def __init__(self, parent=None):
+        super(SINItem, self).__init__(' SIN ', parent=parent)
+        # self._region_size = 10
+        # self._ratio = 75
+        # self._iterate_times = 10
+        self._edge = False
+        self._color_fill = False
+
+    def __call__(self, img):
+        if not (self._color_fill or self._edge):
+            return img
+
+        # print(libs.SIN.run_demo.main())
+        result_img, label_SIN, toc = libs.SIN.run_demo.SIN_handle(img)
+        result_img = img
+        self.change_img_label(label_SIN)
+        if self._color_fill:
+            result_img = self.color_segments(img, label_SIN)
+
+        if self._edge:
+            result_img = MyItem.draw_edge(result_img, label_SIN)
+        Data.use_algorithm = 'SIN'
+        Data.running_time = toc
+        return result_img
+        # return img
+
+
+
+class ERSItem(MyItem):
+    def __init__(self, parent=None):
+        super(ERSItem, self).__init__(' ERS ', parent=parent)
+        # self._region_size = 10
+        # self._ratio = 75
+        # self._iterate_times = 10
+        self._num_superpixels = 100
+        self._edge = False
+        self._color_fill = False
+
+    def __call__(self, img):
+        if not (self._color_fill or self._edge):
+            return img
+
+        # print(libs.SIN.run_demo.main())
+        label_ERS, toc = libs.ERS.demoERS.ERS_handle(img, self._num_superpixels)
+        result_img = img
+        self.change_img_label(label_ERS)
+        if self._color_fill:
+            result_img = self.color_segments(img, label_ERS)
+
+        if self._edge:
+            result_img = MyItem.draw_edge(result_img, label_ERS)
+        Data.use_algorithm = 'ERS'
+        Data.running_time = toc
         return result_img

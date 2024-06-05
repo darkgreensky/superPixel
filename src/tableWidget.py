@@ -191,7 +191,7 @@ class OpenCVSLICTableWidget(TableWidget):
         # 超像素平滑度
         self.ruler_spinBox = QSpinBox()
         self.ruler_spinBox.setMinimum(0)
-        self.ruler_spinBox.setMaximum(50)
+        self.ruler_spinBox.setMaximum(1000)
         self.ruler_spinBox.setSingleStep(1)
         self.ruler_spinBox.setObjectName('ruler')
 
@@ -414,3 +414,110 @@ class OpenCVLSCTableWidget(TableWidget):
         if text:
             value = float(text)
             self.num_levels_slider.setValue(int(value * 1000))  # 根据需要进行调整
+
+
+class SINTableWidget(TableWidget):
+    def __init__(self, parent=None):
+        super(SINTableWidget, self).__init__(parent=parent)
+
+        # 平均超像素大小
+        # self.region_size_spinBox = QSpinBox()
+        # self.region_size_spinBox.setMinimum(1)
+        # self.region_size_spinBox.setMaximum(500)
+        # self.region_size_spinBox.setSingleStep(1)
+        # self.region_size_spinBox.setObjectName('region_size')
+
+        self.checkbox_layout = QHBoxLayout()
+        # 是否显示边界
+        self._edge_checkBox = QCheckBox()
+        self.checkbox1 = QCheckBox('显示边界')
+        self.checkbox_layout.addWidget(self.checkbox1)
+        self.checkboxWidget = QWidget()
+        self.checkbox1.setObjectName('edge')
+
+        # 是否色彩填充
+        self._color_checkBox = QCheckBox()
+        self.checkbox2 = QCheckBox('色彩填充')
+        self.checkbox_layout.addWidget(self.checkbox2)
+        self.checkboxWidget = QWidget()
+        self.checkbox2.setObjectName('color_fill')
+
+        self.checkboxWidget.setLayout(self.checkbox_layout)
+        self.setColumnCount(2)
+        self.setRowCount(2)
+
+        # self.setItem(0, 0, QTableWidgetItem('平均超像素大小'))
+        # self.setCellWidget(0, 1, self.region_size_spinBox)
+
+        self.setSpan(0, 0, 1, 2)
+        self.setSpan(1, 0, 1, 2)
+
+        self.start_Button = QPushButton('确定')
+        self.start_Button.clicked.connect(self.button_click)
+        self.buttonLayout = QHBoxLayout()
+        self.buttonLayout.addWidget(self.start_Button)
+        self.buttonWidget = QWidget()
+        self.buttonWidget.setLayout(self.buttonLayout)
+
+        self.verticalHeader().resizeSection(0, 50)
+        self.verticalHeader().resizeSection(1, 60)
+
+        self.setCellWidget(0, 0, self.checkboxWidget)
+        self.setCellWidget(1, 0, self.buttonWidget)  # 设置按钮 Widget 在单元格中水平和垂直居中
+
+    def button_click(self):
+        self.update_item()
+
+
+
+class ERSTableWidget(TableWidget):
+    def __init__(self, parent=None):
+        super(ERSTableWidget, self).__init__(parent=parent)
+
+        # 平均超像素大小
+        self.num_superpixels_spinBox = QSpinBox()
+        self.num_superpixels_spinBox.setMinimum(1)
+        self.num_superpixels_spinBox.setMaximum(10000)
+        self.num_superpixels_spinBox.setSingleStep(1)
+        self.num_superpixels_spinBox.setObjectName('num_superpixels')
+
+        self.checkbox_layout = QHBoxLayout()
+        # 是否显示边界
+        self._edge_checkBox = QCheckBox()
+        self.checkbox1 = QCheckBox('显示边界')
+        self.checkbox_layout.addWidget(self.checkbox1)
+        self.checkboxWidget = QWidget()
+        self.checkbox1.setObjectName('edge')
+
+        # 是否色彩填充
+        self._color_checkBox = QCheckBox()
+        self.checkbox2 = QCheckBox('色彩填充')
+        self.checkbox_layout.addWidget(self.checkbox2)
+        self.checkboxWidget = QWidget()
+        self.checkbox2.setObjectName('color_fill')
+
+        self.checkboxWidget.setLayout(self.checkbox_layout)
+        self.setColumnCount(2)
+        self.setRowCount(3)
+
+        self.setItem(0, 0, QTableWidgetItem('超像素数目'))
+        self.setCellWidget(0, 1, self.num_superpixels_spinBox)
+
+        self.setSpan(1, 0, 1, 2)
+        self.setSpan(2, 0, 1, 2)
+
+        self.start_Button = QPushButton('确定')
+        self.start_Button.clicked.connect(self.button_click)
+        self.buttonLayout = QHBoxLayout()
+        self.buttonLayout.addWidget(self.start_Button)
+        self.buttonWidget = QWidget()
+        self.buttonWidget.setLayout(self.buttonLayout)
+
+        self.verticalHeader().resizeSection(1, 50)
+        self.verticalHeader().resizeSection(2, 60)
+
+        self.setCellWidget(1, 0, self.checkboxWidget)
+        self.setCellWidget(2, 0, self.buttonWidget)  # 设置按钮 Widget 在单元格中水平和垂直居中
+
+    def button_click(self):
+        self.update_item()
